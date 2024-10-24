@@ -1,4 +1,4 @@
-[![Tests](https://github.com/mutantsan/ckanext-auth/actions/workflows/test.yml/badge.svg)](https://github.com/mutantsan/ckanext-auth/actions/workflows/test.yml)
+[![Tests](https://github.com/DataShades/ckanext-auth/actions/workflows/test.yml/badge.svg)](https://github.com/DataShades/ckanext-auth/actions/workflows/test.yml)
 
 __This extension partially based on the [ckanext-security](https://github.com/data-govt-nz/ckanext-security)__
 
@@ -33,7 +33,7 @@ To install ckanext-auth:
 
 2. Clone the source and install it on the virtualenv
 
-        git clone https://github.com//ckanext-auth.git
+        git clone https://github.com/DataShades/ckanext-auth.git
         cd ckanext-auth
         pip install -e .
         pip install -r requirements.txt
@@ -75,7 +75,7 @@ There are several configuration settings available for this extension:
       type: int
       description: Number of failed login attempts before the login timeout is triggered.
 
-If you have the [ckanext-admin-panel](https://github.com/mutantsan/ckanext-admin-panel) installed, the configuration settings will be available in the admin panel too.
+If you have the [ckanext-admin-panel](https://github.com/DataShades/ckanext-admin-panel) installed, the configuration settings will be available in the admin panel too.
 
 ## How to
 

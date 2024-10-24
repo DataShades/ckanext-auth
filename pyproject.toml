@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ckanext-auth"
+version = "0.1.31"
+description = "2FA authentication for CKAN"
+authors = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+    {name = "Oleksandr Cherniavskyi", email = "mutantsan@gmail.com"},
+]
+maintainers = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+]
+license = {text = "AGPL"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+keywords = ["CKAN"]
+urls = {Homepage = "https://github.com/DataShades/ckanext-auth"}
+dependencies = []
+optional-dependencies = {}
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.entry-points]
+"ckan.plugins" = {auth = "ckanext.auth.plugin:AuthPlugin"}
+"babel.extractors" = {ckan = "ckan.lib.extract:extract_ckan"}
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::sqlalchemy.exc.SADeprecationWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore::DeprecationWarning",
+]
+addopts = "--ckan-ini test.ini"
