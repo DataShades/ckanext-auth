@@ -171,6 +171,7 @@ def login():
         {
             "login": tk.get_or_bust(tk.request.form, "login"),
             "password": tk.get_or_bust(tk.request.form, "password"),
+            "check_captcha": False
         }
     )
 
