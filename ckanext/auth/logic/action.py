@@ -65,14 +65,11 @@ def auth_2fa_check_credentials(
 
     user = model.User.by_name(data_dict["login"])
 
-    # enable the recaptcha check only for the CKAN < 2.11+, as it's integrated
-    # into the CKAN core since 2.11.0
-    if tk.check_ckan_version(max_version="2.10.99"):
-        try:
-            captcha.check_recaptcha(tk.request)
-        except captcha.CaptchaError:
-            log.info("2FA: Login failed for %s", data_dict["login"])
-            return LoginResponse(success=False, error=tk._("Invalid reCAPTCHA"))
+    try:
+        captcha.check_recaptcha(tk.request)
+    except captcha.CaptchaError:
+        log.info("2FA: Login failed for %s", data_dict["login"])
+        return LoginResponse(success=False, error=tk._("Invalid reCAPTCHA"))
 
     if (
         not user
