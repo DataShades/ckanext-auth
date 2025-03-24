@@ -49,10 +49,12 @@ ckan.module("auth-login-form", function () {
                         this._initMfaForm();
                     } else {
                         this._showError(resp.result.error);
+                        grecaptcha.reset();
                     }
                 },
                 error: (resp) => {
                     console.error(resp);
+                    grecaptcha.reset();
                 },
                 complete: () => {
                     this.nextBtn.prop("disabled", false);
