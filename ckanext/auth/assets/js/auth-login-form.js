@@ -82,9 +82,9 @@ ckan.module("auth-login-form", function () {
             this.resendDisabled = true;
             this.resendCodeBtn.prop("disabled", true);
 
-            const countdownInterval = setInterval(() => {
+            this.countdownInterval = setInterval(() => {
                 if (countdownTime <= 0) {
-                    clearInterval(countdownInterval);
+                    clearInterval(this.countdownInterval);
                     this.resendCodeBtn.prop("disabled", false);
                     counterSpan.text("");
                     this.resendDisabled = false;
@@ -105,6 +105,7 @@ ckan.module("auth-login-form", function () {
             }
 
             this._sendVerificationCode();
+            this._setResendCountdown();
         },
 
         _sendVerificationCode: function () {
@@ -176,6 +177,15 @@ ckan.module("auth-login-form", function () {
                 data: this.form.serialize(),
                 success: (resp) => {
                     if (!resp.result.success) {
+                        // Stop the counter and show resend button
+                        if (this.countdownInterval) {
+                            clearInterval(this.countdownInterval);
+                        }
+
+                        this.resendDisabled = false;
+                        this.resendCodeBtn.prop("disabled", false);
+                        this.resendCodeBtn.find("span").text("");
+
                         return this._showError(resp.result.error);
                     }
 
