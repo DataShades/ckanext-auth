@@ -90,13 +90,12 @@ def send_verification_email_to_user(user_id: str) -> bool:
         return False
 
     code = get_email_verification_code(user)
-
     data = {
         "verification_code": code,
         "site_url": tk.config["ckan.site_url"],
         "site_title": tk.config["ckan.site_title"],
         "user_name": user.display_name,
-        "subject": tk._("Verification code for your account"),
+        "subject": tk._(config.get_2fa_subject()),
         "body": f"Your verification code is: {code}",
     }
 
@@ -116,7 +115,7 @@ def send_verification_email_to_user(user_id: str) -> bool:
         try:
             ckan_mailer.mail_user(
                 recipient=user,
-                subject=tk._("Verification code for your account"),
+                subject=data["subject"],
                 body=data["body"],
                 body_html=tk.render(
                     "auth/emails/verification_code.html",

@@ -43,7 +43,11 @@ To install ckanext-auth:
    config file (by default the config file is located at
    `/etc/ckan/default/ckan.ini`).
 
-4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
+4. Apply database migrations:
+
+        ckan db pending-migrations --apply
+
+5. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
 
         sudo service apache2 reload
 

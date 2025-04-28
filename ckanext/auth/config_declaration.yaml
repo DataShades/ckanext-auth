@@ -13,6 +13,11 @@ groups:
         editable: true
         description: The method to use for two-factor authentication. Options are email or authenticator.
 
+      - key: ckanext.auth.2fa_subject
+        default: Verification code for your account
+        editable: true
+        description: Subject of the email with confirmation code.
+
       - key: ckanext.auth.2fa_email_interval
         default: 600
         editable: true

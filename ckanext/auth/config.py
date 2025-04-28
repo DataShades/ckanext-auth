@@ -4,6 +4,7 @@ import ckan.plugins.toolkit as tk
 
 CONF_2FA_ENABLED = "ckanext.auth.2fa_enabled"
 CONF_2FA_METHOD = "ckanext.auth.2fa_method"
+CONF_2FA_SUBJECT = "ckanext.auth.2fa_subject"
 CONF_2FA_EMAIL_INTERVAL = "ckanext.auth.2fa_email_interval"
 CONF_2FA_LOGIN_TIMEOUT = "ckanext.auth.2fa_login_timeout"
 CONF_2FA_MAX_ATTEMPTS = "ckanext.auth.2fa_login_max_attempts"
@@ -19,6 +20,10 @@ def is_2fa_enabled() -> bool:
 
 def get_2fa_method() -> str:
     return tk.config[CONF_2FA_METHOD]
+
+
+def get_2fa_subject() -> str:
+    return tk.config[CONF_2FA_SUBJECT]
 
 
 def is_email_2fa_enabled() -> bool:
