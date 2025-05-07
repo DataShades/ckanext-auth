@@ -3,16 +3,16 @@ from __future__ import annotations
 import logging
 from typing import Any, TypedDict
 
+import ckan.lib.captcha as captcha
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 from ckan import types
 from ckan.logic import validate
-import ckan.lib.captcha as captcha
 
-import ckanext.auth.exceptions as exceptions
-import ckanext.auth.utils as utils
 import ckanext.auth.config as auth_config
+import ckanext.auth.exceptions as exceptions
 import ckanext.auth.logic.schema as schema
+import ckanext.auth.utils as utils
 from ckanext.auth.model import UserSecret
 
 log = logging.getLogger(__name__)

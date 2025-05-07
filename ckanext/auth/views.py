@@ -4,13 +4,14 @@ import logging
 from functools import wraps
 from typing import cast
 
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, Response, jsonify, request
 from flask.views import MethodView
 
 import ckan.types as types
 from ckan.lib import helpers
-from ckan.plugins import toolkit as tk, plugin_loaded
 from ckan.logic import parse_params
+from ckan.plugins import plugin_loaded
+from ckan.plugins import toolkit as tk
 
 from ckanext.auth import utils
 from ckanext.auth.model import UserSecret

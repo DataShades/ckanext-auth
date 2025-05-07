@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ckanext.auth import helpers, config
+from ckanext.auth import config, helpers
 
 
 class TestIs2FAEnabled:

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import unittest.mock as mock
 from typing import cast
 
 import pytest
-import unittest.mock as mock
 
 import ckan.model as model
 
-from ckanext.auth import utils, config
+from ckanext.auth import config, utils
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "with_request_context")

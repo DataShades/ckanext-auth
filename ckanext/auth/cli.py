@@ -4,7 +4,7 @@ import logging
 
 import click
 
-from ckanext.auth import utils, model
+from ckanext.auth import model, utils
 
 logger = logging.getLogger(__name__)
 

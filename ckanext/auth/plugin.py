@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import logging
 
+from flask import Response
+
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
-from ckan import types
+from ckan import types, model
+from ckan.common import session
 
 import ckanext.auth.utils as utils
 
@@ -61,3 +64,20 @@ class AuthPlugin(plugins.SingletonPlugin):
 
     def login(self):
         return utils.login()
+
+    def identify(self) -> Response | None:
+        if tk.current_user.is_authenticated:
+            return
+
+        user_id = session.get("_user_id")
+
+        if not user_id:
+            return
+
+        user = model.User.get(user_id)
+
+        if not user:
+            return log.debug("No user found in database for user id %s", user_id)
+
+        tk.g.user = user.name
+        tk.g.userobj = user

@@ -1,30 +1,22 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
-
-import ckan.plugins as p
-import ckan.model as model
-import ckan.lib.mailer as ckan_mailer
-import ckan.plugins.toolkit as tk
-from ckan.lib.redis import connect_to_redis
-
-from ckanext.auth import config as auth_config
-from ckanext.auth.model import UserSecret
-from typing import Any
 from datetime import timedelta
 
-from ckan.cli import user
+import ckan.lib.mailer as ckan_mailer
 import ckan.model as model
-import ckan.plugins as plugins
+import ckan.plugins as p
 import ckan.plugins.toolkit as tk
-from ckan.views.user import next_page_or_default, rotate_token
 from ckan.lib.authenticator import default_authenticate
+from ckan.lib.redis import connect_to_redis
+from ckan.views.user import next_page_or_default, rotate_token
 
 import ckanext.auth.utils as utils
 from ckanext.auth import config
-from ckanext.auth.model import UserSecret
+from ckanext.auth import config as auth_config
 from ckanext.auth.exceptions import ReplayAttackException
+from ckanext.auth.model import UserSecret
+from ckanext.auth.types import UserIdentity
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +49,8 @@ class LoginManager:
     @classmethod
     def get_user_login_attempts(cls, user_id: str) -> int:
         """Get the number of login attempts for a user."""
-        return int(connect_to_redis().get(cls.login_attempts_key.format(user_id)) or 0)
+        redis = connect_to_redis()
+        return int(redis.get(cls.login_attempts_key.format(user_id)) or 0) # type: ignore
 
     @classmethod
     def reset_for_user(cls, user_id: str) -> None:
@@ -76,10 +69,10 @@ class LoginManager:
 
         redis = connect_to_redis()
 
-        for key in redis.keys(cls.login_attempts_key.format("*")):
+        for key in redis.keys(cls.login_attempts_key.format("*")): # type: ignore
             redis.delete(key)
 
-        for key in redis.keys(cls.blocked_key.format("*")):
+        for key in redis.keys(cls.blocked_key.format("*")): # type: ignore
             redis.delete(key)
 
 
@@ -156,7 +149,7 @@ def regenerate_user_secret(user_id: str) -> str:
 
     log.debug("2FA: Rotated the 2fa secret for user %s", user_id)
 
-    return cast(str, user_secret.secret)
+    return str(user_secret.secret)
 
 
 def login():
@@ -167,15 +160,16 @@ def login():
         return tk.render("user/login.html", {})
 
     user_obj = authenticate(
-        {
-            "login": tk.get_or_bust(tk.request.form, "login"),
-            "password": tk.get_or_bust(tk.request.form, "password"),
-            "check_captcha": False
-        }
+        UserIdentity(
+            login=tk.get_or_bust(tk.request.form, "login"),
+            password=tk.get_or_bust(tk.request.form, "password"),
+            check_captcha=False
+        )
     )
 
     if not user_obj:
         tk.h.flash_error(tk._("Login failed. Bad username or password."))
+        log.debug("Login failed for user %s", tk.request.form["login"])
         return tk.render("user/login.html", {})
 
     if remember := tk.request.form.get("remember"):
@@ -192,13 +186,10 @@ def login():
     )
 
 
-def authenticate(identity: dict[str, str]) -> model.User | None:
+def authenticate(identity: UserIdentity) -> model.User | model.AnonymousUser | None:
     # Run through the CKAN auth sequence first, so we can hit the DB
     # in every case and make timing attacks a little more difficult.
-    ckan_auth_result = default_authenticate(identity)
-
-    if "login" not in identity:
-        return None
+    ckan_auth_result = default_authenticate(identity) # type: ignore
 
     if utils.LoginManager.is_login_blocked(identity["login"]):
         return None

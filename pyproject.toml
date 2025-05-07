@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-auth"
-version = "0.3.4"
+version = "0.3.5"
 description = "2FA authentication for CKAN"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -36,6 +36,13 @@ content-type = "text/markdown"
 
 [tool.setuptools.packages]
 find = {}
+
+[tool.isort]
+known_ckan = "ckan"
+known_ckanext = "ckanext"
+known_self = "ckanext.auth"
+sections = "FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,CKAN,CKANEXT,SELF,LOCALFOLDER"
+profile = "black"
 
 [tool.pytest.ini_options]
 filterwarnings = [
