@@ -7,7 +7,7 @@ import unittest.mock as mock
 
 import ckan.model as model
 
-from ckanext.auth import utils, config
+from ckanext.auth import utils
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "with_request_context")
@@ -47,11 +47,11 @@ class TestRegenerateUserSecret:
 @pytest.mark.usefixtures("with_plugins", "clean_db", "clean_redis")
 class TestLoginManager:
     def test_no_login_attemps(self, user):
-        assert utils.LoginManager.get_user_login_attempts(user["id"]) is 0
+        assert utils.LoginManager.get_user_login_attempts(user["id"]) == 0
 
     def test_one_login_attempt(self, user):
         utils.LoginManager.log_user_login_attempt(user["id"])
-        assert utils.LoginManager.get_user_login_attempts(user["id"]) is 1
+        assert utils.LoginManager.get_user_login_attempts(user["id"]) == 1
 
     def test_block_user_login(self, user):
         utils.LoginManager.block_user_login(user["id"])

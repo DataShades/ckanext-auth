@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt
 from datetime import timezone as tz
-from typing import Any, cast
+from typing import cast
 
 import pyotp
 from sqlalchemy import Column, DateTime, ForeignKey, Text
@@ -98,6 +98,7 @@ class UserSecret(tk.BaseModel):
         Returns:
             bool: True if the code is valid, False otherwise
         """
+        code = code.strip()
         is_totp_enabled = auth_config.is_totp_2fa_enabled()
 
         if is_totp_enabled:

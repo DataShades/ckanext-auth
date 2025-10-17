@@ -11,19 +11,13 @@ from ckan.lib.redis import connect_to_redis
 
 from ckanext.auth import config as auth_config
 from ckanext.auth.model import UserSecret
-from typing import Any
 from datetime import timedelta
 
-from ckan.cli import user
-import ckan.model as model
-import ckan.plugins as plugins
-import ckan.plugins.toolkit as tk
 from ckan.views.user import next_page_or_default, rotate_token
 from ckan.lib.authenticator import default_authenticate
 
 import ckanext.auth.utils as utils
 from ckanext.auth import config
-from ckanext.auth.model import UserSecret
 from ckanext.auth.exceptions import ReplayAttackException
 
 log = logging.getLogger(__name__)
@@ -170,7 +164,7 @@ def login():
         {
             "login": tk.get_or_bust(tk.request.form, "login"),
             "password": tk.get_or_bust(tk.request.form, "password"),
-            "check_captcha": False
+            "check_captcha": False,
         }
     )
 

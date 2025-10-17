@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, TypedDict
+from typing import TypedDict
 
 import ckan.model as model
 import ckan.plugins.toolkit as tk
