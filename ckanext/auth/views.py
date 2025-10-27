@@ -14,6 +14,7 @@ from ckan.logic import parse_params
 
 from ckanext.auth import utils
 from ckanext.auth.model import UserSecret
+import ckanext.auth.helpers as ah
 
 log = logging.getLogger(__name__)
 auth = Blueprint("auth", __name__, url_prefix="/mfa")
@@ -23,7 +24,9 @@ def require_login(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if tk.current_user.is_anonymous:
-            return tk.abort(401, tk._("You have to be logged in to access this page."))
+            return tk.abort(
+                401, tk._("You have to be logged in to access this page.")
+            )
         return func(*args, **kwargs)
 
     return decorated_view
@@ -33,7 +36,9 @@ class Configure2FA(MethodView):
     @require_login
     def get(self, user_id: str):
         try:
-            user_dict = tk.get_action("user_show")(self.get_context(), {"id:": user_id})
+            user_dict = tk.get_action("user_show")(
+                self.get_context(), {"id:": user_id}
+            )
         except tk.ObjectNotFound:
             tk.abort(404, tk._("User not found"))
         except tk.NotAuthorized:
@@ -122,7 +127,9 @@ def send_verification_code() -> Response:
     return jsonify(
         {
             "success": success,
-            "error": "Failed to send verification code" if not success else None,
+            "error": (
+                "Failed to send verification code" if not success else None
+            ),
             "result": None,
         }
     )
@@ -145,6 +152,25 @@ def init_qr_code() -> Response:
                 "accessed": bool(secret.last_access),
                 "provisioning_uri": secret.provisioning_uri,
                 "secret": secret.secret,
+            },
+        }
+    )
+
+
+@auth.route("/get-user-code", methods=["POST"])
+def get_2fa_user_code() -> Response:
+    if not ah.is_2fa_dev_mode_enabled():
+        tk.abort(404, tk._("Not found"))
+
+    user_name: str = tk.get_or_bust(dict(tk.request.form), "login")
+
+    secret = UserSecret.get_for_user(user_name)
+
+    return jsonify(
+        {
+            "success": True if secret else False,
+            "result": {
+                "code": secret.get_code() if secret else None,
             },
         }
     )

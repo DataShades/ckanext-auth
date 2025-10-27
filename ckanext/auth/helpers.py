@@ -13,3 +13,7 @@ def is_2fa_enabled() -> bool:
 
 def get_2fa_method() -> str:
     return auth_config.get_2fa_method()
+
+
+def is_2fa_dev_mode_enabled() -> bool:
+    return auth_config.is_2fa_dev_mode()

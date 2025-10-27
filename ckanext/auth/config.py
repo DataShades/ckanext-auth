@@ -8,6 +8,7 @@ CONF_2FA_SUBJECT = "ckanext.auth.2fa_subject"
 CONF_2FA_EMAIL_INTERVAL = "ckanext.auth.2fa_email_interval"
 CONF_2FA_LOGIN_TIMEOUT = "ckanext.auth.2fa_login_timeout"
 CONF_2FA_MAX_ATTEMPTS = "ckanext.auth.2fa_login_max_attempts"
+CONF_2FA_DEV_MODE = "ckanext.auth.2fa_dev_mode"
 
 METHOD_EMAIL = "email"
 METHOD_AUTHENTICATOR = "authenticator"
@@ -44,3 +45,7 @@ def get_2fa_login_timeout() -> int:
 
 def get_2fa_max_attempts() -> int:
     return int(tk.config[CONF_2FA_MAX_ATTEMPTS])
+
+
+def is_2fa_dev_mode() -> bool:
+    return tk.asbool(tk.config[CONF_2FA_DEV_MODE])

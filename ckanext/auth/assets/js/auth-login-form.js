@@ -70,6 +70,7 @@ ckan.module("auth-login-form", function () {
             if (this.isEmailMfa) {
                 this._setResendCountdown();
                 this._sendVerificationCode();
+                this._show_user_code();
             } else {
                 this._initQrCode();
             };
@@ -124,6 +125,29 @@ ckan.module("auth-login-form", function () {
                     this.submitBtn.prop("disabled", false);
                 }
             });
+        },
+
+        _show_user_code: function () {
+            const is_dev_mode = $('.dev-mode-user-code');
+            if (is_dev_mode.length == 1) {
+                $.ajax({
+                    url: "/mfa/get-user-code",
+                    method: "POST",
+                    data: this.form.serialize(),
+                    success: (response) => {
+                        if (response && response.success == true) {
+                            const code_wrapper = is_dev_mode.find('.code-wrapper').first();
+                            if (code_wrapper.length == 1) {
+                                code_wrapper[0].textContent = response.result.code;
+                                is_dev_mode.show();
+                            }
+                        }
+                    },
+                    error: (resp) => {
+                        console.error(resp);
+                    }
+                });
+            }
         },
 
 

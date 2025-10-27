@@ -35,3 +35,9 @@ groups:
         editable: true
         type: int
         description: Number of failed login attempts before the login timeout is triggered.
+
+      - key: ckanext.auth.2fa_dev_mode
+        default: false
+        editable: true
+        type: bool
+        description: Enable Dev mode that shows the secret code straight on the auth page.
