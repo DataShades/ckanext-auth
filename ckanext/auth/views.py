@@ -11,6 +11,7 @@ import ckan.types as types
 from ckan.lib import helpers
 from ckan.plugins import toolkit as tk, plugin_loaded
 from ckan.logic import parse_params
+import ckan.model as model
 
 from ckanext.auth import utils
 from ckanext.auth.model import UserSecret
@@ -162,18 +163,21 @@ def get_2fa_user_code() -> Response:
     if not ah.is_2fa_dev_mode_enabled():
         tk.abort(404, tk._("Not found"))
 
-    user_name: str = tk.get_or_bust(dict(tk.request.form), "login")
+    user_name = tk.request.form.get("login")
 
-    secret = UserSecret.get_for_user(user_name)
+    if not user_name:
+        return tk.abort(400, tk._("Missing 'login' parameter"))
 
-    return jsonify(
-        {
-            "success": True if secret else False,
-            "result": {
-                "code": secret.get_code() if secret else None,
-            },
-        }
-    )
+    user = model.User.get(user_name)
+
+    if not user or not user.email:
+        return tk.abort(404, tk._("User not found or has no email set"))
+
+    code = utils.get_email_verification_code(user)
+
+    log.info("Providing 2FA code %s for user %s in dev mode", code, user.name)
+
+    return jsonify({"success": True, "result": {"code": code}})
 
 
 if plugin_loaded("admin_panel"):

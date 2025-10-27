@@ -2,7 +2,7 @@
     <p>{{ _("We've just sent a verification code to your email.") }}</p>
 
     {% if h.is_2fa_dev_mode_enabled() %}
-        <div class="dev-mode-user-code alert-success alert" style="display: none;">
+        <div id="dev-mode-user-code" class="alert-success alert" style="display: none;">
             {{ _("Code") }}: <span class="code-wrapper"></span>
         </div>
     {% endif %}
