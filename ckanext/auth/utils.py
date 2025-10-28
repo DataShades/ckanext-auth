@@ -1,24 +1,21 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import cast
 
-import ckan.plugins as p
-import ckan.model as model
 import ckan.lib.mailer as ckan_mailer
+import ckan.plugins as p
 import ckan.plugins.toolkit as tk
-from ckan.lib.redis import connect_to_redis
-
-from ckanext.auth import config as auth_config
-from ckanext.auth.model import UserSecret
-from datetime import timedelta
-
-from ckan.views.user import next_page_or_default, rotate_token
+from ckan import model
 from ckan.lib.authenticator import default_authenticate
+from ckan.lib.redis import connect_to_redis
+from ckan.views.user import next_page_or_default, rotate_token
 
-import ckanext.auth.utils as utils
 from ckanext.auth import config
-from ckanext.auth.exceptions import ReplayAttackException
+from ckanext.auth import config as auth_config
+from ckanext.auth.exceptions import ReplayAttackError
+from ckanext.auth.model import UserSecret
 
 log = logging.getLogger(__name__)
 
@@ -51,9 +48,7 @@ class LoginManager:
     @classmethod
     def get_user_login_attempts(cls, user_id: str) -> int:
         """Get the number of login attempts for a user."""
-        return int(
-            connect_to_redis().get(cls.login_attempts_key.format(user_id)) or 0
-        )
+        return int(connect_to_redis().get(cls.login_attempts_key.format(user_id)) or 0)  # type: ignore
 
     @classmethod
     def reset_for_user(cls, user_id: str) -> None:
@@ -72,10 +67,10 @@ class LoginManager:
 
         redis = connect_to_redis()
 
-        for key in redis.keys(cls.login_attempts_key.format("*")):
+        for key in redis.keys(cls.login_attempts_key.format("*")):  # type: ignore
             redis.delete(key)
 
-        for key in redis.keys(cls.blocked_key.format("*")):
+        for key in redis.keys(cls.blocked_key.format("*")):  # type: ignore
             redis.delete(key)
 
 
@@ -96,7 +91,7 @@ def send_verification_email_to_user(user_id: str) -> bool:
     }
 
     if p.plugin_loaded("mailcraft"):
-        from ckanext.mailcraft.utils import get_mailer
+        from ckanext.mailcraft.utils import get_mailer  # noqa PLC0415
 
         get_mailer().mail_recipients(
             subject=data["subject"],
@@ -142,7 +137,6 @@ def regenerate_user_secret(user_id: str) -> str:
     Returns:
         str: The new secret
     """
-
     user = model.User.get(user_id)
 
     if not user:
@@ -167,7 +161,7 @@ def login():
             "login": tk.get_or_bust(tk.request.form, "login"),
             "password": tk.get_or_bust(tk.request.form, "password"),
             "check_captcha": False,
-        }
+        },
     )
 
     if not user_obj:
@@ -186,7 +180,7 @@ def login():
     rotate_token()
 
     return next_page_or_default(
-        tk.request.args.get("next", tk.request.args.get("came_from"))
+        tk.request.args.get("next", tk.request.args.get("came_from")),
     )
 
 
@@ -198,26 +192,26 @@ def authenticate(identity: dict[str, str]) -> model.User | None:
     if "login" not in identity:
         return None
 
-    if utils.LoginManager.is_login_blocked(identity["login"]):
+    if LoginManager.is_login_blocked(identity["login"]):
         return None
 
     if (
-        utils.LoginManager.get_user_login_attempts(identity["login"])
+        LoginManager.get_user_login_attempts(identity["login"])
         > config.get_2fa_max_attempts()
     ):
-        utils.LoginManager.block_user_login(identity["login"])
+        LoginManager.block_user_login(identity["login"])
 
     if not ckan_auth_result:
-        return utils.LoginManager.log_user_login_attempt(identity["login"])
+        return LoginManager.log_user_login_attempt(identity["login"])
 
     if not config.is_2fa_enabled():
-        utils.LoginManager.reset_for_user(identity["login"])
+        LoginManager.reset_for_user(identity["login"])
         return ckan_auth_result
 
     # if the CKAN authenticator has successfully authenticated
     # then check the TOTP parameter to see if it is valid
     if authenticate_totp(identity["login"]):
-        utils.LoginManager.reset_for_user(identity["login"])
+        LoginManager.reset_for_user(identity["login"])
         return ckan_auth_result
 
     # This means that the login form has been submitted
@@ -236,7 +230,8 @@ def authenticate_totp(user_name: str) -> str | None:
     # shouldn't happen, login flow should create a user secret
     if not user_secret:
         return log.debug(
-            "2FA: Login attempted without MFA configured for: %s", user_name
+            "2FA: Login attempted without MFA configured for: %s",
+            user_name,
         )
 
     if "code" not in tk.request.form:
@@ -244,8 +239,8 @@ def authenticate_totp(user_name: str) -> str | None:
 
     try:
         result = user_secret.check_code(tk.request.form["code"])
-    except ReplayAttackException as e:
-        return log.warning(  # noqa: G200
+    except ReplayAttackError as e:
+        return log.warning(
             "2FA: Detected a possible replay attack for user: %s, context: %s",
             user_name,
             e,

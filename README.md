@@ -11,6 +11,8 @@ There are two methods of 2FA available:
 
 ## Requirements
 
+Python 3.11+
+
 This extension uses __Redis__, so it must be configured for CKAN.
 
 Compatibility with core CKAN versions:
@@ -29,61 +31,31 @@ and I'll help you with that.
 To install ckanext-auth:
 
 1. Activate your CKAN virtual environment, for example:
-
-        . /usr/lib/ckan/default/bin/activate
-
+```sh
+. /usr/lib/ckan/default/bin/activate
+```
 2. Clone the source and install it on the virtualenv
-
-        git clone https://github.com/DataShades/ckanext-auth.git
-        cd ckanext-auth
-        pip install -e .
-        pip install -r requirements.txt
-
+```sh
+git clone https://github.com/DataShades/ckanext-auth.git
+cd ckanext-auth
+pip install -e .
+```
 3. Add `auth` to the `ckan.plugins` setting in your CKAN
    config file (by default the config file is located at
    `/etc/ckan/default/ckan.ini`).
 
 4. Apply database migrations:
-
-        ckan db pending-migrations --apply
-
+```
+ckan db upgrade
+```
 5. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
-
-        sudo service apache2 reload
-
+```
+sudo service apache2 reload
+```
 
 ## Config settings
 
-There are several configuration settings available for this extension:
-
-    - key: ckanext.auth.2fa_enabled
-      default: true
-      type: bool
-      description: Enable two-factor authentication for users
-
-    - key: ckanext.auth.2fa_method
-      default: email
-      description: The method to use for two-factor authentication. Options are email or authenticator.
-
-    - key: ckanext.auth.2fa_email_interval
-      default: 600
-      type: int
-      description: TTL for the authentication code sent via email in seconds. Default is 10 minutes.
-
-    - key: ckanext.auth.2fa_login_timeout
-      default: 900
-      type: int
-      description: Login timeout in seconds after N failed attempted. Default is 15 minutes.
-
-    - key: ckanext.auth.2fa_login_max_attempts
-      default: 10
-      type: int
-      description: Number of failed login attempts before the login timeout is triggered.
-
-    - key: ckanext.auth.2fa_dev_mode
-      default: false
-      type: bool
-      description: Enables Dev Mode. When enabled, it shows the actual code next to the code input. This is useful when your environment does not have SMTP configured.
+There are several configuration settings available for this extension. Check the config [declaration file](./ckanext/auth/config_declaration.yaml).
 
 If you have the [ckanext-admin-panel](https://github.com/DataShades/ckanext-admin-panel) installed, the configuration settings will be available in the admin panel too.
 
@@ -94,9 +66,9 @@ If you have the [ckanext-admin-panel](https://github.com/DataShades/ckanext-admi
 ## Tests
 
 To run the tests, do:
-
-    pytest --ckan-ini=test.ini
-
+```sh
+pytest --ckan-ini=test.ini
+```
 
 ## License
 

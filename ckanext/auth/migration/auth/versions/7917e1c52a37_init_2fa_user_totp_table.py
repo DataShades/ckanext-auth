@@ -1,4 +1,4 @@
-"""Init 2fa_user_totp table
+"""Init 2fa_user_totp table.
 
 Revision ID: 7917e1c52a37
 Revises:
@@ -6,9 +6,8 @@ Create Date: 2024-08-01 15:38:57.177385
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "7917e1c52a37"

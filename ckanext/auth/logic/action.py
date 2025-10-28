@@ -3,16 +3,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-import ckan.model as model
 import ckan.plugins.toolkit as tk
-from ckan import types
+from ckan import model, types
+from ckan.lib import captcha
 from ckan.logic import validate
-import ckan.lib.captcha as captcha
 
-import ckanext.auth.exceptions as exceptions
-import ckanext.auth.utils as utils
 import ckanext.auth.config as auth_config
-import ckanext.auth.logic.schema as schema
+from ckanext.auth import exceptions, utils
+from ckanext.auth.logic import schema
 from ckanext.auth.model import UserSecret
 
 log = logging.getLogger(__name__)
@@ -26,7 +24,8 @@ class LoginResponse(TypedDict, total=False):
 
 @validate(schema.auth_2fa_user_login)
 def auth_2fa_user_login(
-    context: types.Context, data_dict: types.DataDict
+    context: types.Context,
+    data_dict: types.DataDict,
 ) -> LoginResponse:
     tk.check_access("auth_2fa_user_login", context, data_dict)
 
@@ -45,7 +44,7 @@ def auth_2fa_user_login(
 
     try:
         success = user_secret.check_code(data_dict["code"])
-    except exceptions.ReplayAttackException:
+    except exceptions.ReplayAttackError:
         return LoginResponse(
             success=False,
             error="The verification code has expired",
@@ -61,7 +60,8 @@ def auth_2fa_user_login(
 
 @validate(schema.auth_2fa_user_login)
 def auth_2fa_check_credentials(
-    context: types.Context, data_dict: types.DataDict
+    context: types.Context,
+    data_dict: types.DataDict,
 ) -> LoginResponse:
     tk.check_access("auth_2fa_user_login", context, data_dict)
 
@@ -88,14 +88,10 @@ def auth_2fa_check_credentials(
         ):
             utils.LoginManager.block_user_login(data_dict["login"])
 
-        return LoginResponse(
-            success=False, error=tk._("Invalid login or password")
-        )
+        return LoginResponse(success=False, error=tk._("Invalid login or password"))
 
     if utils.LoginManager.is_login_blocked(data_dict["login"]):
         log.info("2FA: User %s is blocked from logging in", data_dict["login"])
-        return LoginResponse(
-            success=False, error=tk._("Too many login attempts")
-        )
+        return LoginResponse(success=False, error=tk._("Too many login attempts"))
 
     return LoginResponse(success=True, error=None)

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from unittest import mock
 from typing import cast
 
 import pytest
-import unittest.mock as mock
 
-import ckan.model as model
+from ckan import model
 
 from ckanext.auth import utils
+
+CODE_LENGTH = 6
+SECRET_LENGTH = 32
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "with_request_context")
@@ -29,7 +32,7 @@ class TestGetEmailVerificationCode:
 
         assert code
         assert isinstance(code, str)
-        assert len(code) == 6
+        assert len(code) == CODE_LENGTH
         assert code.isdigit()
 
 
@@ -40,7 +43,7 @@ class TestRegenerateUserSecret:
 
         assert secret
         assert isinstance(secret, str)
-        assert len(secret) == 32
+        assert len(secret) == SECRET_LENGTH
         assert secret.isalnum()
 
 

@@ -4,7 +4,7 @@ import logging
 
 import click
 
-from ckanext.auth import utils, model
+from ckanext.auth import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -20,24 +20,24 @@ def auth():
 
 @auth.command()
 @click.argument("username")
-def reset_secret(username):
+def reset_secret(username: str) -> None:
     utils.regenerate_user_secret(username)
 
 
 @auth.command()
 @click.argument("username")
-def unblock_user(username):
+def unblock_user(username: str) -> None:
     utils.LoginManager.reset_for_user(username)
 
 
 @auth.command()
-def unblock_all():
+def unblock_all() -> None:
     utils.LoginManager.reset_all()
 
 
 @auth.command()
 @click.argument("username")
-def get_code(username):
+def get_code(username: str) -> None:
     secret = model.UserSecret.get_for_user(username)
 
     if not secret:

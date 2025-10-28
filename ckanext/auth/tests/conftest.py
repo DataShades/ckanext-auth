@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def clean_db(reset_db, migrate_db_for):
     reset_db()
 

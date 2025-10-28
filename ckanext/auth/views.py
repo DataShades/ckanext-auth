@@ -1,33 +1,32 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from functools import wraps
 from typing import cast
 
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, Response, jsonify, request
 from flask.views import MethodView
 
-import ckan.types as types
+from ckan import model, types
 from ckan.lib import helpers
-from ckan.plugins import toolkit as tk, plugin_loaded
 from ckan.logic import parse_params
-import ckan.model as model
+from ckan.plugins import plugin_loaded
+from ckan.plugins import toolkit as tk
 
+import ckanext.auth.helpers as ah
 from ckanext.auth import utils
 from ckanext.auth.model import UserSecret
-import ckanext.auth.helpers as ah
 
 log = logging.getLogger(__name__)
 auth = Blueprint("auth", __name__, url_prefix="/mfa")
 
 
-def require_login(func):
+def require_login(func: Callable[..., Response | str]) -> Callable[..., Response | str]:
     @wraps(func)
-    def decorated_view(*args, **kwargs):
+    def decorated_view(*args: tuple, **kwargs: dict[str, str]) -> Response | str:
         if tk.current_user.is_anonymous:
-            return tk.abort(
-                401, tk._("You have to be logged in to access this page.")
-            )
+            return tk.abort(401, tk._("You have to be logged in to access this page."))
         return func(*args, **kwargs)
 
     return decorated_view
@@ -35,11 +34,9 @@ def require_login(func):
 
 class Configure2FA(MethodView):
     @require_login
-    def get(self, user_id: str):
+    def get(self, user_id: str) -> str:
         try:
-            user_dict = tk.get_action("user_show")(
-                self.get_context(), {"id:": user_id}
-            )
+            user_dict = tk.get_action("user_show")(self.get_context(), {"id:": user_id})
         except tk.ObjectNotFound:
             tk.abort(404, tk._("User not found"))
         except tk.NotAuthorized:
@@ -66,7 +63,7 @@ class Configure2FA(MethodView):
         }
 
     @require_login
-    def post(self, user_id: str):
+    def post(self, user_id: str) -> Response:
         extra_vars = self._setup_totp_extra_vars(user_id)
 
         if extra_vars.get("code_valid"):
@@ -74,20 +71,20 @@ class Configure2FA(MethodView):
                 tk._(
                     """
                     The code is valid. Your authenticator app is
-                    now properly set up for future use."""
-                )
+                    now properly set up for future use.""",
+                ),
             )
         else:
             tk.h.flash_error(
                 tk._(
                     """The code is incorrect. Please try scanning
-                the QR code with your authenticator app again."""
-                )
+                the QR code with your authenticator app again.""",
+                ),
             )
 
         return tk.redirect_to("auth.configure_2fa", user_id=user_id)
 
-    def _setup_totp_extra_vars(self, user_id: str):
+    def _setup_totp_extra_vars(self, user_id: str) -> dict[str, object]:
         data_dict = parse_params(tk.request.form)
 
         user_secret = UserSecret.get_for_user(user_id)
@@ -104,7 +101,8 @@ class Configure2FA(MethodView):
 
         if request.method == "POST" and test_code:
             extra_vars["code_valid"] = user_secret.check_code(
-                test_code, verify_only=True
+                test_code,
+                verify_only=True,
             )
 
         return extra_vars
@@ -128,11 +126,9 @@ def send_verification_code() -> Response:
     return jsonify(
         {
             "success": success,
-            "error": (
-                "Failed to send verification code" if not success else None
-            ),
+            "error": ("Failed to send verification code" if not success else None),
             "result": None,
-        }
+        },
     )
 
 
@@ -154,7 +150,7 @@ def init_qr_code() -> Response:
                 "provisioning_uri": secret.provisioning_uri,
                 "secret": secret.secret,
             },
-        }
+        },
     )
 
 
@@ -198,7 +194,8 @@ if plugin_loaded("admin_panel"):
 
 
 auth.add_url_rule(
-    "/configure_2fa/<user_id>", view_func=Configure2FA.as_view("configure_2fa")
+    "/configure_2fa/<user_id>",
+    view_func=Configure2FA.as_view("configure_2fa"),
 )
 
 

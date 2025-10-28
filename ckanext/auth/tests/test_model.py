@@ -10,6 +10,9 @@ import ckan.plugins.toolkit as tk
 from ckanext.auth.model import UserSecret
 
 
+CODE_LENGTH = 6
+
+
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestUserSecretModel:
     def test_get_secret_for_user_missing(self, user):
@@ -45,7 +48,7 @@ class TestUserSecretModel:
         code = secret.get_code()
 
         assert code
-        assert len(code) == 6
+        assert len(code) == CODE_LENGTH
         assert code.isdigit()
 
     def test_check_code(self, user):
@@ -64,7 +67,7 @@ class TestUserSecretModel:
         assert secret.last_access
 
     def test_check_code_verify_only_once(self, user):
-        """We use it for test verify on the user 2MA configure page"""
+        """We use it for test verify on the user 2MA configure page."""
         secret = UserSecret.create_for_user(user["name"])
         code = secret.get_code()
 
@@ -79,7 +82,4 @@ class TestUserSecretModel:
         assert "otpauth://totp" in secret.provisioning_uri
         assert user["name"] in secret.provisioning_uri
         assert cast(str, secret.secret) in secret.provisioning_uri
-        assert (
-            parse.quote_plus(tk.config["ckan.site_url"])
-            in secret.provisioning_uri
-        )
+        assert parse.quote_plus(tk.config["ckan.site_url"]) in secret.provisioning_uri

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-auth"
-version = "0.3.6"
+version = "0.4.0"
 description = "2FA authentication for CKAN"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -17,13 +17,15 @@ license = {text = "AGPL"}
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 keywords = ["CKAN"]
 urls = {Homepage = "https://github.com/DataShades/ckanext-auth"}
-dependencies = []
+dependencies = [
+    "pyotp>=2.6.0,<3.0.0"
+]
 optional-dependencies = {}
 
 [project.readme]
@@ -47,9 +49,9 @@ addopts = "--ckan-ini test.ini"
 
 [tool.pyright]
 extraPaths = [
-           "../ckan",
+    "../ckan",
 ]
-pythonVersion = "3.9"
+pythonVersion = "3.11"
 include = ["ckanext"]
 strict = []
 
@@ -118,3 +120,48 @@ reportUnnecessaryTypeIgnoreComment = true
 reportMatchNotExhaustive = true
 reportAny = false
 reportExplicitAny = false
+
+
+[tool.ruff]
+target-version = "py311"
+lint.select = [
+    "B",   # likely bugs and design problems
+    "BLE", # do not catch blind exception
+    "C40", # better list/set/dict comprehensions
+    "C90", # check McCabe complexity
+    "COM", # trailing commas
+    "E",   # pycodestyle error
+    "W",   # pycodestyle warning
+    "F",   # pyflakes
+    "G",   # format strings for logging statements
+    "N",   # naming conventions
+    "PL",  # pylint
+    "PT",  # pytest style
+    "PIE", # misc lints
+    "Q",   # preferred quoting style
+    "RET", # improvements for return statements
+    "RSE", # improvements for rise statements
+    # "S",  # security testing
+    "SIM", # simplify code
+    "T10", # debugging statements
+    "T20", # print statements
+    "TID", # tidier imports
+    "TRY", # better exceptions
+    "UP",  # upgrade syntax for newer versions of the language
+]
+lint.ignore = [
+    "E712",    # comparison to bool: violated by SQLAlchemy filters
+    "PLC1901", # simplify comparison to empty string: violated by SQLAlchemy filters
+    "COM812", # conflicts with `ruff format`
+    "TRY003"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"ckanext/$PLUGIN/tests*" = ["S", "PL"]
+
+[tool.isort]
+known_ckan = "ckan"
+known_ckanext = "ckanext"
+known_self = "ckanext.auth"
+sections = "FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,CKAN,CKANEXT,SELF,LOCALFOLDER"
+profile = "black"

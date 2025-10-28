@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-import ckan.plugins as plugins
+from flask import Response
+
 import ckan.plugins.toolkit as tk
+from ckan import plugins as p
 from ckan import types
+from ckan.common import CKANConfig
 
-import ckanext.auth.utils as utils
+from ckanext.auth import utils
 
 log = logging.getLogger(__name__)
 
@@ -17,14 +21,14 @@ log = logging.getLogger(__name__)
 @tk.blanket.blueprints
 @tk.blanket.config_declarations
 @tk.blanket.cli
-class AuthPlugin(plugins.SingletonPlugin):
-    plugins.implements(plugins.IConfigurer)
-    plugins.implements(plugins.ISignal)
-    plugins.implements(plugins.IAuthenticator, inherit=True)
+class AuthPlugin(p.SingletonPlugin):
+    p.implements(p.IConfigurer)
+    p.implements(p.ISignal)
+    p.implements(p.IAuthenticator, inherit=True)
 
     # IConfigurer
 
-    def update_config(self, config_):
+    def update_config(self, config_: CKANConfig) -> None:
         tk.add_template_directory(config_, "templates")
         tk.add_resource("assets", "auth")
 
@@ -41,7 +45,7 @@ class AuthPlugin(plugins.SingletonPlugin):
         }
 
     @staticmethod
-    def collect_config_sections_subs(sender: None):
+    def collect_config_sections_subs(sender: None) -> dict[str, Any]:
         return {
             "name": "Auth",
             "configs": [
@@ -54,10 +58,10 @@ class AuthPlugin(plugins.SingletonPlugin):
         }
 
     @staticmethod
-    def collect_config_schemas_subs(sender: None):
+    def collect_config_schemas_subs(sender: None) -> list[str]:
         return ["ckanext.auth:config_schema.yaml"]
 
     # IAuthenticator
 
-    def login(self):
+    def login(self) -> str | Response:
         return utils.login()
