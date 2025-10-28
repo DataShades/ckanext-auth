@@ -79,4 +79,7 @@ class TestUserSecretModel:
         assert "otpauth://totp" in secret.provisioning_uri
         assert user["name"] in secret.provisioning_uri
         assert cast(str, secret.secret) in secret.provisioning_uri
-        assert parse.quote_plus(tk.config["ckan.site_url"]) in secret.provisioning_uri
+        assert (
+            parse.quote_plus(tk.config["ckan.site_url"])
+            in secret.provisioning_uri
+        )

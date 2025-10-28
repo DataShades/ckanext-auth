@@ -28,6 +28,7 @@ ckan.module("auth-login-form", function () {
             this.mfaForm = $("#mfa-form");
             this.mfaSetup = $("#mfa-qr-code");
             this.errorContainer = $("#mfa-error-container");
+            this.devModeCodeBlock = $("#dev-mode-user-code");
 
             // Bind events
             this.form.on("submit", this._onFormSubmit);
@@ -122,6 +123,28 @@ ckan.module("auth-login-form", function () {
                 },
                 complete: () => {
                     this.submitBtn.prop("disabled", false);
+                    this._show_user_code();
+                }
+            });
+        },
+
+        _show_user_code: function () {
+            if (this.devModeCodeBlock.length !== 1) {
+                return;
+            }
+
+            $.ajax({
+                url: "/mfa/get-user-code",
+                method: "POST",
+                data: this.form.serialize(),
+                success: (response) => {
+                    if (!response?.success) return;
+
+                    this.devModeCodeBlock.find('.code-wrapper').text(response.result.code);
+                    this.devModeCodeBlock.show();
+                },
+                error: (resp) => {
+                    console.error(resp);
                 }
             });
         },

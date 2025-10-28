@@ -47,7 +47,9 @@ def auth_2fa_user_login(
         success = user_secret.check_code(data_dict["code"])
     except exceptions.ReplayAttackException:
         return LoginResponse(
-            success=False, error="The verification code has expired", valid=False
+            success=False,
+            error="The verification code has expired",
+            valid=False,
         )
 
     return LoginResponse(
@@ -86,10 +88,14 @@ def auth_2fa_check_credentials(
         ):
             utils.LoginManager.block_user_login(data_dict["login"])
 
-        return LoginResponse(success=False, error=tk._("Invalid login or password"))
+        return LoginResponse(
+            success=False, error=tk._("Invalid login or password")
+        )
 
     if utils.LoginManager.is_login_blocked(data_dict["login"]):
         log.info("2FA: User %s is blocked from logging in", data_dict["login"])
-        return LoginResponse(success=False, error=tk._("Too many login attempts"))
+        return LoginResponse(
+            success=False, error=tk._("Too many login attempts")
+        )
 
     return LoginResponse(success=True, error=None)

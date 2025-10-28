@@ -16,5 +16,9 @@ def auth_2fa_user_login(
         "login": [not_missing, unicode_safe],
         "password": [not_missing, unicode_safe],
         "code": [not_missing, unicode_safe],
-        "mfa_type": [not_missing, unicode_safe, one_of(auth_config.ALLOWED_METHODS)],
+        "mfa_type": [
+            not_missing,
+            unicode_safe,
+            one_of(auth_config.ALLOWED_METHODS),
+        ],
     }

@@ -51,7 +51,9 @@ class LoginManager:
     @classmethod
     def get_user_login_attempts(cls, user_id: str) -> int:
         """Get the number of login attempts for a user."""
-        return int(connect_to_redis().get(cls.login_attempts_key.format(user_id)) or 0)
+        return int(
+            connect_to_redis().get(cls.login_attempts_key.format(user_id)) or 0
+        )
 
     @classmethod
     def reset_for_user(cls, user_id: str) -> None:
@@ -174,7 +176,9 @@ def login():
 
     if remember := tk.request.form.get("remember"):
         tk.login_user(
-            user_obj, remember=True, duration=timedelta(milliseconds=int(remember))
+            user_obj,
+            remember=True,
+            duration=timedelta(milliseconds=int(remember)),
         )
     else:
         tk.login_user(user_obj)
@@ -241,7 +245,7 @@ def authenticate_totp(user_name: str) -> str | None:
     try:
         result = user_secret.check_code(tk.request.form["code"])
     except ReplayAttackException as e:
-        return log.warning(
+        return log.warning(  # noqa: G200
             "2FA: Detected a possible replay attack for user: %s, context: %s",
             user_name,
             e,

@@ -80,6 +80,11 @@ There are several configuration settings available for this extension:
       type: int
       description: Number of failed login attempts before the login timeout is triggered.
 
+    - key: ckanext.auth.2fa_dev_mode
+      default: false
+      type: bool
+      description: Enables Dev Mode. When enabled, it shows the actual code next to the code input. This is useful when your environment does not have SMTP configured.
+
 If you have the [ckanext-admin-panel](https://github.com/DataShades/ckanext-admin-panel) installed, the configuration settings will be available in the admin panel too.
 
 ## How to

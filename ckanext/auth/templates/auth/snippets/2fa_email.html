@@ -1,6 +1,12 @@
 <div id="mfa-form" style="display: none;">
     <p>{{ _("We've just sent a verification code to your email.") }}</p>
 
+    {% if h.is_2fa_dev_mode_enabled() %}
+        <div id="dev-mode-user-code" class="alert-success alert" style="display: none;">
+            {{ _("Code") }}: <span class="code-wrapper"></span>
+        </div>
+    {% endif %}
+
     <div class="form-group control-medium">
         <label class="form-label" for="field-code">{{ _("Verification code") }}</label>
         <div class="controls ">

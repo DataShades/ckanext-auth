@@ -23,7 +23,9 @@ class UserSecret(tk.BaseModel):
     __tablename__ = "2fa_user_secret"
 
     id = Column(Text, primary_key=True, default=make_uuid)
-    user_id = Column(ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True)
+    user_id = Column(
+        ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True
+    )
     secret = Column(Text, nullable=False)
     last_access = Column(DateTime)
 
@@ -44,7 +46,9 @@ class UserSecret(tk.BaseModel):
         user_secret = cls.get_for_user(user_name)
 
         user = (
-            model.Session.query(model.User).filter(model.User.name == user_name).first()
+            model.Session.query(model.User)
+            .filter(model.User.name == user_name)
+            .first()
         )
 
         if not user:
@@ -90,7 +94,9 @@ class UserSecret(tk.BaseModel):
 
         Args:
             code (str): the code to check
-            verify_only (bool, optional): if True, the code is not saved as a successful challenge. Defaults to False.
+            verify_only (bool, optional):
+                if True, the code is not saved as a successful challenge.
+                Defaults to False.
 
         Raises:
             ReplayAttackException: if the code has already been used
@@ -108,7 +114,8 @@ class UserSecret(tk.BaseModel):
             result = totp.verify(code, valid_window=1)
         else:
             totp = pyotp.TOTP(
-                cast(str, self.secret), interval=auth_config.get_2fa_email_interval()
+                cast(str, self.secret),
+                interval=auth_config.get_2fa_email_interval(),
             )
             result = totp.verify(code)
 
@@ -124,7 +131,9 @@ class UserSecret(tk.BaseModel):
             self.last_access = dt.now(tz.utc)
             model.Session.commit()
         else:
-            log.debug("2FA: Failed to verify the totp code for user %s", self.user_id)
+            log.debug(
+                "2FA: Failed to verify the totp code for user %s", self.user_id
+            )
 
         return result
 

@@ -11,9 +11,11 @@ import ckan.types as types
 from ckan.lib import helpers
 from ckan.plugins import toolkit as tk, plugin_loaded
 from ckan.logic import parse_params
+import ckan.model as model
 
 from ckanext.auth import utils
 from ckanext.auth.model import UserSecret
+import ckanext.auth.helpers as ah
 
 log = logging.getLogger(__name__)
 auth = Blueprint("auth", __name__, url_prefix="/mfa")
@@ -23,7 +25,9 @@ def require_login(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if tk.current_user.is_anonymous:
-            return tk.abort(401, tk._("You have to be logged in to access this page."))
+            return tk.abort(
+                401, tk._("You have to be logged in to access this page.")
+            )
         return func(*args, **kwargs)
 
     return decorated_view
@@ -33,7 +37,9 @@ class Configure2FA(MethodView):
     @require_login
     def get(self, user_id: str):
         try:
-            user_dict = tk.get_action("user_show")(self.get_context(), {"id:": user_id})
+            user_dict = tk.get_action("user_show")(
+                self.get_context(), {"id:": user_id}
+            )
         except tk.ObjectNotFound:
             tk.abort(404, tk._("User not found"))
         except tk.NotAuthorized:
@@ -122,7 +128,9 @@ def send_verification_code() -> Response:
     return jsonify(
         {
             "success": success,
-            "error": "Failed to send verification code" if not success else None,
+            "error": (
+                "Failed to send verification code" if not success else None
+            ),
             "result": None,
         }
     )
@@ -148,6 +156,28 @@ def init_qr_code() -> Response:
             },
         }
     )
+
+
+@auth.route("/get-user-code", methods=["POST"])
+def get_2fa_user_code() -> Response:
+    if not ah.is_2fa_dev_mode_enabled():
+        tk.abort(404, tk._("Not found"))
+
+    user_name = tk.request.form.get("login")
+
+    if not user_name:
+        return tk.abort(400, tk._("Missing 'login' parameter"))
+
+    user = model.User.get(user_name)
+
+    if not user or not user.email:
+        return tk.abort(404, tk._("User not found or has no email set"))
+
+    code = utils.get_email_verification_code(user)
+
+    log.info("Providing 2FA code %s for user %s in dev mode", code, user.name)
+
+    return jsonify({"success": True, "result": {"code": code}})
 
 
 if plugin_loaded("admin_panel"):
