@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import NotRequired, TypedDict, cast
+
+try:
+    from typing import NotRequired, TypedDict, cast
+except ImportError:
+    from typing_extensions import NotRequired, TypedDict, cast
 
 import ckan.lib.mailer as ckan_mailer
 import ckan.plugins as p

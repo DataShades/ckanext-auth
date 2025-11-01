@@ -11,7 +11,7 @@ There are two methods of 2FA available:
 
 ## Requirements
 
-Python 3.11+
+Python 3.10+
 
 This extension uses __Redis__, so it must be configured for CKAN.
 

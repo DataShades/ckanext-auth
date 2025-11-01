@@ -94,7 +94,7 @@ class Configure2FA(MethodView):
 
         test_code = cast(str, data_dict.get("code"))
 
-        extra_vars: dict[str, Any]= {
+        extra_vars: dict[str, Any] = {
             "totp_secret": user_secret.secret,
             "provisioning_uri": user_secret.provisioning_uri,
         }

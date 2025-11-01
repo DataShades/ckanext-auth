@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC
 from datetime import datetime as dt
-from typing import Self, cast
+from datetime import timezone as tz
+
+try:
+    from typing import Self, cast
+except ImportError:
+    from typing_extensions import Self, cast
 
 import pyotp
 from sqlalchemy import DateTime, ForeignKey, Text
@@ -118,7 +122,7 @@ class UserSecret(tk.BaseModel):
             if is_totp_enabled and self.last_access and totp.at(cast(dt, self.last_access)) == code:
                 raise ReplayAttackError("The code has already been used")
 
-            self.last_access = dt.now(UTC)
+            self.last_access = dt.now(tz.utc)
             model.Session.commit()
         else:
             log.debug("2FA: Failed to verify the totp code for user %s", self.user_id)

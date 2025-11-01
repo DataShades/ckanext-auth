@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-auth"
-version = "0.4.2"
+version = "0.4.3"
 description = "2FA authentication for CKAN"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -17,6 +17,7 @@ license = {text = "AGPL"}
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -51,7 +52,7 @@ addopts = "--ckan-ini test.ini"
 extraPaths = [
     "../ckan",
 ]
-pythonVersion = "3.11"
+pythonVersion = "3.10"
 include = ["ckanext"]
 strict = []
 
@@ -123,7 +124,7 @@ reportExplicitAny = false
 
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
