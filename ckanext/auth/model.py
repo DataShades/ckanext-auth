@@ -10,8 +10,8 @@ except ImportError:
     from typing_extensions import Self, cast
 
 import pyotp
-from sqlalchemy import DateTime, ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Column, DateTime, ForeignKey, Text
+from sqlalchemy.orm import Mapped
 
 import ckan.plugins.toolkit as tk
 from ckan import model
@@ -26,10 +26,10 @@ log = logging.getLogger(__name__)
 class UserSecret(tk.BaseModel):
     __tablename__ = "2fa_user_secret"
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, default=make_uuid)
-    user_id: Mapped[str] = mapped_column(ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True)
-    secret: Mapped[str] = mapped_column(Text, nullable=False)
-    last_access: Mapped[dt | None] = mapped_column(DateTime)
+    id: Mapped[str] = Column(Text, primary_key=True, default=make_uuid)  # type: ignore
+    user_id: Mapped[str] = Column(ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True)  # type: ignore
+    secret: Mapped[str] = Column(Text, nullable=False)  # type: ignore
+    last_access: Mapped[dt | None] = Column(DateTime)  # type: ignore
 
     @classmethod
     def create_for_user(cls, user_name: str) -> Self:
