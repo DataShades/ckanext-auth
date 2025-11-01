@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-auth"
-version = "0.4.0"
+version = "0.4.1"
 description = "2FA authentication for CKAN"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -124,7 +124,10 @@ reportExplicitAny = false
 
 [tool.ruff]
 target-version = "py311"
-lint.select = [
+line-length = 120
+
+[tool.ruff.lint]
+select = [
     "B",   # likely bugs and design problems
     "BLE", # do not catch blind exception
     "C40", # better list/set/dict comprehensions
@@ -149,7 +152,7 @@ lint.select = [
     "TRY", # better exceptions
     "UP",  # upgrade syntax for newer versions of the language
 ]
-lint.ignore = [
+ignore = [
     "E712",    # comparison to bool: violated by SQLAlchemy filters
     "PLC1901", # simplify comparison to empty string: violated by SQLAlchemy filters
     "COM812", # conflicts with `ruff format`
@@ -159,9 +162,7 @@ lint.ignore = [
 [tool.ruff.lint.per-file-ignores]
 "ckanext/$PLUGIN/tests*" = ["S", "PL"]
 
-[tool.isort]
-known_ckan = "ckan"
-known_ckanext = "ckanext"
-known_self = "ckanext.auth"
-sections = "FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,CKAN,CKANEXT,SELF,LOCALFOLDER"
-profile = "black"
+[tool.ruff.lint.isort.sections]
+ckan = ["ckan"]
+ckanext = ["ckanext"]
+self = ["ckanext.auth"]

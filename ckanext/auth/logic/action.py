@@ -73,19 +73,12 @@ def auth_2fa_check_credentials(
         log.info("2FA: Login failed for %s", data_dict["login"])
         return LoginResponse(success=False, error=tk._("Invalid reCAPTCHA"))
 
-    if (
-        not user
-        or not user.is_active
-        or not user.validate_password(data_dict["password"])
-    ):
+    if not user or not user.is_active or not user.validate_password(data_dict["password"]):
         log.info("2FA: Login failed for %s", data_dict["login"])
 
         utils.LoginManager.log_user_login_attempt(data_dict["login"])
 
-        if (
-            utils.LoginManager.get_user_login_attempts(data_dict["login"])
-            > auth_config.get_2fa_max_attempts()
-        ):
+        if utils.LoginManager.get_user_login_attempts(data_dict["login"]) > auth_config.get_2fa_max_attempts():
             utils.LoginManager.block_user_login(data_dict["login"])
 
         return LoginResponse(success=False, error=tk._("Invalid login or password"))

@@ -9,7 +9,6 @@ import ckan.plugins.toolkit as tk
 
 from ckanext.auth.model import UserSecret
 
-
 CODE_LENGTH = 6
 
 

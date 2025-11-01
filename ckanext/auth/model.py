@@ -6,7 +6,8 @@ from datetime import datetime as dt
 from typing import Self, cast
 
 import pyotp
-from sqlalchemy import Column, DateTime, ForeignKey, Text
+from sqlalchemy import DateTime, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
 import ckan.plugins.toolkit as tk
 from ckan import model
@@ -21,10 +22,10 @@ log = logging.getLogger(__name__)
 class UserSecret(tk.BaseModel):
     __tablename__ = "2fa_user_secret"
 
-    id = Column(Text, primary_key=True, default=make_uuid)
-    user_id = Column(ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True)
-    secret = Column(Text, nullable=False)
-    last_access = Column(DateTime)
+    id: Mapped[str] = mapped_column(Text, primary_key=True, default=make_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey(model.User.id, ondelete="CASCADE"), primary_key=True)
+    secret: Mapped[str] = mapped_column(Text, nullable=False)
+    last_access: Mapped[dt | None] = mapped_column(DateTime)
 
     @classmethod
     def create_for_user(cls, user_name: str) -> Self:
@@ -42,9 +43,7 @@ class UserSecret(tk.BaseModel):
         secret_value = pyotp.random_base32()
         user_secret = cls.get_for_user(user_name)
 
-        user = (
-            model.Session.query(model.User).filter(model.User.name == user_name).first()
-        )
+        user = model.Session.query(model.User).filter(model.User.name == user_name).first()
 
         if not user:
             raise tk.ObjectNotFound("User not found")
@@ -116,11 +115,7 @@ class UserSecret(tk.BaseModel):
 
         if result and not verify_only:
             # check for replay attack...
-            if (
-                is_totp_enabled
-                and self.last_access
-                and totp.at(cast(dt, self.last_access)) == code
-            ):
+            if is_totp_enabled and self.last_access and totp.at(cast(dt, self.last_access)) == code:
                 raise ReplayAttackError("The code has already been used")
 
             self.last_access = dt.now(UTC)
@@ -133,11 +128,7 @@ class UserSecret(tk.BaseModel):
     @property
     def provisioning_uri(self):
         """Returns the uri for setting up a QR code."""
-        user = (
-            model.Session.query(model.User)
-            .filter(model.User.id == self.user_id)
-            .first()
-        )
+        user = model.Session.query(model.User).filter(model.User.id == self.user_id).first()
 
         if user is None:
             raise ValueError(

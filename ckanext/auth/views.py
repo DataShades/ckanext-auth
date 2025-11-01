@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import cast
+from typing import Any, cast
 
 from flask import Blueprint, Response, jsonify, request
 from flask.views import MethodView
@@ -84,7 +84,7 @@ class Configure2FA(MethodView):
 
         return tk.redirect_to("auth.configure_2fa", user_id=user_id)
 
-    def _setup_totp_extra_vars(self, user_id: str) -> dict[str, object]:
+    def _setup_totp_extra_vars(self, user_id: str) -> dict[str, Any]:
         data_dict = parse_params(tk.request.form)
 
         user_secret = UserSecret.get_for_user(user_id)
@@ -94,7 +94,7 @@ class Configure2FA(MethodView):
 
         test_code = cast(str, data_dict.get("code"))
 
-        extra_vars = {
+        extra_vars: dict[str, Any]= {
             "totp_secret": user_secret.secret,
             "provisioning_uri": user_secret.provisioning_uri,
         }

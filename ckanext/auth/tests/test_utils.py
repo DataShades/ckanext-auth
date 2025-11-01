@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from unittest import mock
 from typing import cast
+from unittest import mock
 
 import pytest
 

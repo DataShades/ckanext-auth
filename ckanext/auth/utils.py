@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import cast
+from typing import NotRequired, TypedDict, cast
 
 import ckan.lib.mailer as ckan_mailer
 import ckan.plugins as p
@@ -18,6 +18,12 @@ from ckanext.auth.exceptions import ReplayAttackError
 from ckanext.auth.model import UserSecret
 
 log = logging.getLogger(__name__)
+
+
+class IdentityDict(TypedDict):
+    login: NotRequired[str]
+    password: str
+    check_captcha: bool
 
 
 class LoginManager:
@@ -157,11 +163,11 @@ def login():
         return tk.render("user/login.html", {})
 
     user_obj = authenticate(
-        {
-            "login": tk.get_or_bust(tk.request.form, "login"),
-            "password": tk.get_or_bust(tk.request.form, "password"),
-            "check_captcha": False,
-        },
+        IdentityDict(
+            login=tk.get_or_bust(tk.request.form, "login"),
+            password=tk.get_or_bust(tk.request.form, "password"),
+            check_captcha=False,
+        )
     )
 
     if not user_obj:
@@ -184,10 +190,10 @@ def login():
     )
 
 
-def authenticate(identity: dict[str, str]) -> model.User | None:
+def authenticate(identity: IdentityDict) -> model.User | model.AnonymousUser | None:
     # Run through the CKAN auth sequence first, so we can hit the DB
     # in every case and make timing attacks a little more difficult.
-    ckan_auth_result = default_authenticate(identity)
+    ckan_auth_result = default_authenticate(dict(identity))
 
     if "login" not in identity:
         return None
@@ -195,10 +201,7 @@ def authenticate(identity: dict[str, str]) -> model.User | None:
     if LoginManager.is_login_blocked(identity["login"]):
         return None
 
-    if (
-        LoginManager.get_user_login_attempts(identity["login"])
-        > config.get_2fa_max_attempts()
-    ):
+    if LoginManager.get_user_login_attempts(identity["login"]) > config.get_2fa_max_attempts():
         LoginManager.block_user_login(identity["login"])
 
     if not ckan_auth_result:
