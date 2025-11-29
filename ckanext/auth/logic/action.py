@@ -4,7 +4,7 @@ import logging
 from typing import TypedDict
 
 import ckan.plugins.toolkit as tk
-from ckan import model, types
+from ckan import types
 from ckan.lib import captcha
 from ckan.logic import validate
 
@@ -29,8 +29,7 @@ def auth_2fa_user_login(
 ) -> LoginResponse:
     tk.check_access("auth_2fa_user_login", context, data_dict)
 
-    user = model.User.by_name(data_dict["login"])
-
+    user = utils.get_user_by_username_or_email(data_dict["login"])
     if not user:
         raise tk.ObjectNotFound("User not found")
 
@@ -65,7 +64,7 @@ def auth_2fa_check_credentials(
 ) -> LoginResponse:
     tk.check_access("auth_2fa_user_login", context, data_dict)
 
-    user = model.User.by_name(data_dict["login"])
+    user = utils.get_user_by_username_or_email(data_dict["login"])
 
     try:
         captcha.check_recaptcha(tk.request)

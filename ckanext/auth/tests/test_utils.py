@@ -16,13 +16,17 @@ SECRET_LENGTH = 32
 @pytest.mark.usefixtures("with_plugins", "clean_db", "with_request_context")
 class TestSendVerificationCodeToUser:
     @mock.patch("ckan.lib.mailer.mail_user")
-    def test_send_verification_code_to_user(self, mocker, app, user):
+    def test_send_verification_code_to_user(self, mocker, user):
         mocker.return_value = True
         assert utils.send_verification_email_to_user(user["id"])
 
     def test_user_does_not_exist(self):
         assert not utils.send_verification_email_to_user("xxx")
 
+    @mock.patch("ckan.lib.mailer.mail_user")
+    def test_send_verification_code_to_user_with_email(self, mocker, user):
+        mocker.return_value = True
+        assert utils.send_verification_email_to_user(user["email"])
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestGetEmailVerificationCode:

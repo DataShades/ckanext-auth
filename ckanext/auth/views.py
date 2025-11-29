@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import contextlib
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, cast
@@ -9,7 +10,6 @@ from flask import Blueprint, Response, jsonify, request
 from flask.views import MethodView
 
 from ckan import model, types
-from ckan.lib import helpers
 from ckan.logic import parse_params
 from ckan.plugins import plugin_loaded
 from ckan.plugins import toolkit as tk
@@ -113,15 +113,17 @@ class Configure2FA(MethodView):
 def regenerate_secret(user_id: str):
     utils.regenerate_user_secret(user_id)
     tk.h.flash_success(tk._("Your 2FA secret has been regenerated."))
-    return helpers.redirect_to("auth.configure_2fa", user_id=user_id)
+    return tk.redirect_to("auth.configure_2fa", user_id=user_id)
 
 
 @auth.route("/send_verification_code", methods=["POST"])
 def send_verification_code() -> Response:
-    user_name: str = tk.get_or_bust(dict(tk.request.form), "login")
+    login: str = tk.get_or_bust(dict(tk.request.form), "login")
 
-    utils.regenerate_user_secret(user_name)
-    success = utils.send_verification_email_to_user(user_name)
+    with contextlib.suppress(tk.ObjectNotFound):
+        utils.regenerate_user_secret(login)
+
+    success = utils.send_verification_email_to_user(login)
 
     return jsonify(
         {
@@ -137,7 +139,6 @@ def init_qr_code() -> Response:
     user_name: str = tk.get_or_bust(dict(tk.request.form), "login")
 
     secret = UserSecret.get_for_user(user_name)
-
     if not secret:
         secret = UserSecret.create_for_user(user_name)
 
