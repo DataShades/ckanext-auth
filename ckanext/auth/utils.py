@@ -16,7 +16,6 @@ from ckan.lib.authenticator import default_authenticate
 from ckan.lib.redis import connect_to_redis
 from ckan.views.user import next_page_or_default, rotate_token
 
-from ckanext.auth import config
 from ckanext.auth import config as auth_config
 from ckanext.auth.exceptions import ReplayAttackError
 from ckanext.auth.model import UserSecret
@@ -84,8 +83,8 @@ class LoginManager:
             redis.delete(key)
 
 
-def send_verification_email_to_user(user_id: str) -> bool:
-    user = model.User.get(user_id)
+def send_verification_email_to_user(user_reference: str) -> bool:
+    user = get_user_by_username_or_email(user_reference)
 
     if not user or not user.email:
         return False
@@ -96,7 +95,7 @@ def send_verification_email_to_user(user_id: str) -> bool:
         "site_url": tk.config["ckan.site_url"],
         "site_title": tk.config["ckan.site_title"],
         "user_name": user.display_name,
-        "subject": tk._(config.get_2fa_subject()),
+        "subject": tk._(auth_config.get_2fa_subject()),
         "body": f"Your verification code is: {code}",
     }
 
@@ -138,23 +137,23 @@ def get_email_verification_code(user: model.User) -> str:
     return user_secret.get_code()
 
 
-def regenerate_user_secret(user_id: str) -> str:
+def regenerate_user_secret(user_reference: str) -> str:
     """Regenerate the secret for a user.
 
     Args:
-        user_id (str): The id of the user
+        user_reference (str): The user’s ID or email.
 
     Returns:
         str: The new secret
     """
-    user = model.User.get(user_id)
+    user = get_user_by_username_or_email(user_reference)
 
     if not user:
         raise tk.ObjectNotFound("User not found")
 
     user_secret = UserSecret.create_for_user(user.name)
 
-    log.debug("2FA: Rotated the 2fa secret for user %s", user_id)
+    log.debug("2FA: Rotated the 2fa secret for user %s", user.id)
 
     return cast(str, user_secret.secret)
 
@@ -205,13 +204,16 @@ def authenticate(identity: IdentityDict) -> model.User | model.AnonymousUser | N
     if LoginManager.is_login_blocked(identity["login"]):
         return None
 
-    if LoginManager.get_user_login_attempts(identity["login"]) > config.get_2fa_max_attempts():
+    if (
+        LoginManager.get_user_login_attempts(identity["login"])
+        > auth_config.get_2fa_max_attempts()
+    ):
         LoginManager.block_user_login(identity["login"])
 
     if not ckan_auth_result:
         return LoginManager.log_user_login_attempt(identity["login"])
 
-    if not config.is_2fa_enabled():
+    if not auth_config.is_2fa_enabled():
         LoginManager.reset_for_user(identity["login"])
         return ckan_auth_result
 
@@ -254,3 +256,7 @@ def authenticate_totp(user_name: str) -> str | None:
         )
     else:
         return user_name if result else None
+
+
+def get_user_by_username_or_email(user_reference: str) -> model.User | None:
+    return model.User.get(user_reference) or model.User.by_email(user_reference)

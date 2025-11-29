@@ -18,6 +18,7 @@ from ckan import model
 from ckan.model.types import make_uuid
 
 import ckanext.auth.config as auth_config
+from ckanext.auth import utils
 from ckanext.auth.exceptions import ReplayAttackError
 
 log = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class UserSecret(tk.BaseModel):
 
         :raises ValueError if the user_name is not provided
         """
-        user = model.User.get(user_name)
+        user = utils.get_user_by_username_or_email(user_name)
 
         if not user:
             raise tk.ObjectNotFound("User not found")
