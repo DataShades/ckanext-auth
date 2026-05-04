@@ -6,6 +6,9 @@ auth-js:
 
     - js/auth-login-form.js
     - js/auth-qr-render.js
+    - js/auth-passkey-login.js
+    - js/auth-passkey-register.js
+    - js/auth-passkey-manage.js
 
   extra:
     preload:

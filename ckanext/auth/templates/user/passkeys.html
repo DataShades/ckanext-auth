@@ -1,0 +1,49 @@
+{% extends "user/read_base.html" %}
+
+{% import 'macros/form.html' as form %}
+
+{% block primary_content_inner %}
+  <h2 class="hide-heading">
+      {% block page_heading %}{{ _('Passkeys') }}{% endblock %}
+  </h2>
+
+  <div class="passkey-register-section mb-4" data-module="auth-passkey-register">
+    <div class="alert alert-danger passkey-error" style="display: none;"></div>
+      {{ form.input('name', label='Name', is_required=false, value="", attrs={'class': 'form-control passkey-name-input'}, placeholder=_('Passkey name (optional)')) }}
+
+      <button type="button" class="btn btn-primary passkey-register-btn">
+          {{ _('Register a passkey') }}
+      </button>
+  </div>
+
+  <div data-module="auth-passkey-manage">
+      <div class="alert alert-danger passkey-delete-error" style="display: none;"></div>
+
+      {% if passkeys %}
+        <table class="table table-stripped table-condensed table-header table-hover table-bordered passkey-list">
+            <thead>
+                <tr>
+                    <th>{{ _('Name') }}</th>
+                    <th>{{ _('Created') }}</th>
+                    <th>{{ _('Actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pk in passkeys %}
+                  <tr>
+                      <td>{{ pk.name or _('Unnamed') }}</td>
+                      <td>{{ h.render_datetime(pk.created, with_hours=True) }}</td>
+                      <td>
+                          <button type="button" class="btn btn-danger btn-sm passkey-delete-btn" data-passkey-id="{{ pk.id }}" title="{{ _('Remove') }}">
+                              <i class="fa fa-times"></i>
+                          </button>
+                      </td>
+                  </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      {% else %}
+        <p class="passkey-empty empty">{{ _('No passkeys registered yet.') }}</p>
+      {% endif %}
+  </div>
+{% endblock %}

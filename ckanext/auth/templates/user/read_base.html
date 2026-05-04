@@ -1,0 +1,9 @@
+{% ckan_extends %}
+
+{% block content_primary_nav %}
+    {{ super() }}
+
+    {% if h.is_passkey_enabled() %}
+        {{ h.build_nav_icon('auth_passkey.passkeys', _('Passkeys'), id=user.name, icon='key') }}
+    {% endif %}
+{% endblock %}

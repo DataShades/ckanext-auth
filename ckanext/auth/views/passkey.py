@@ -41,9 +41,7 @@ def passkey_register_complete() -> Response:
     name = data.pop("name", "")
 
     try:
-        passkey = passkey_utils.complete_passkey_registration(
-            tk.current_user, data, name
-        )
+        passkey = passkey_utils.complete_passkey_registration(tk.current_user, data, name)
     except tk.ValidationError as e:
         return jsonify({"success": False, "error": e.error_dict, "result": None})
     except Exception as e:
@@ -146,9 +144,7 @@ def passkeys(id: str) -> str | Response:
                 {
                     "id": pk.id,
                     "name": pk.name or "",
-                    "created": (
-                        pk.created.strftime("%Y-%m-%d %H:%M") if pk.created else ""
-                    ),
+                    "created": (pk.created.strftime("%Y-%m-%d %H:%M") if pk.created else ""),
                 }
                 for pk in AuthPasskey.get_for_user(user_dict["id"])
             ],
