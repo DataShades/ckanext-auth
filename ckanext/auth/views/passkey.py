@@ -25,7 +25,7 @@ def passkey_register_begin() -> Response:
 
     try:
         options = passkey_utils.begin_passkey_registration(tk.current_user)
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError) as e:
         return jsonify({"success": False, "error": str(e), "result": None})
 
     return jsonify({"success": True, "error": None, "result": options})
@@ -44,7 +44,7 @@ def passkey_register_complete() -> Response:
         passkey = passkey_utils.complete_passkey_registration(tk.current_user, data, name)
     except tk.ValidationError as e:
         return jsonify({"success": False, "error": e.error_dict, "result": None})
-    except Exception as e:
+    except (KeyError, ValueError) as e:
         return jsonify({"success": False, "error": str(e), "result": None})
 
     return jsonify(
@@ -63,7 +63,7 @@ def passkey_login_begin() -> Response:
 
     try:
         options = passkey_utils.begin_passkey_login()
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError) as e:
         return jsonify({"success": False, "error": str(e), "result": None})
 
     return jsonify({"success": True, "error": None, "result": options})
@@ -82,7 +82,7 @@ def passkey_login_complete() -> Response:
         return jsonify({"success": False, "error": e.error_dict, "result": None})
     except tk.ObjectNotFound as e:
         return jsonify({"success": False, "error": str(e), "result": None})
-    except Exception as e:
+    except (KeyError, ValueError) as e:
         return jsonify({"success": False, "error": str(e), "result": None})
 
     tk.login_user(user)
@@ -106,14 +106,14 @@ def passkey_delete(passkey_id: str) -> Response:
     try:
         passkey_utils.delete_passkey(passkey_id, tk.current_user.id)
     except tk.ObjectNotFound as e:
-        return jsonify({"success": False, "error": str(e), "result": None}), 404
+        return jsonify({"success": False, "error": str(e), "result": None})
     except tk.NotAuthorized:
         return tk.abort(403)
 
     return jsonify({"success": True, "error": None, "result": None})
 
 
-@passkey.route("/passkeys/<id>", methods=["GET"])
+@passkey.route("/list/<id>", methods=["GET"])
 @utils.require_login
 def passkeys(id: str) -> str | Response:
     if not auth_config.is_passkey_enabled():

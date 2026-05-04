@@ -2,11 +2,13 @@
 
 __This extension partially based on the [ckanext-security](https://github.com/data-govt-nz/ckanext-security)__
 
-The extension provides a 2FA authentication mechanism for CKAN.
+The extension provides a 2FA authentication mechanism and passkey (WebAuthn) support for CKAN.
 
 There are two methods of 2FA available:
 - TOTP (Time-based One-Time Password) with authenticator apps like Google Authenticator, Authy, etc.
 - Email
+
+In addition, users can register and log in with **passkeys** — a passwordless authentication method based on the WebAuthn standard (fingerprint, Face ID, hardware security keys, etc.).
 
 
 ## Requirements
@@ -59,9 +61,27 @@ There are several configuration settings available for this extension. Check the
 
 If you have the [ckanext-admin-panel](https://github.com/DataShades/ckanext-admin-panel) installed, the configuration settings will be available in the admin panel too.
 
+### Passkey settings
+
+| Setting | Default | Description |
+| ------- | ------- | ----------- |
+| `ckanext.auth.passkey_enabled` | `false` | Enable passkey (WebAuthn) authentication |
+| `ckanext.auth.passkey_rp_name` | `CKAN` | Relying party display name shown to users during passkey registration. |
+| `ckanext.auth.passkey_rp_id` | _(site hostname)_ | Relying party ID (domain) for passkey authentication. Defaults to the hostname of `ckan.site_url`. |
+
+> **Note:** The `passkey_rp_id` must match the domain (without port) of the site URL. For example, if your site URL is `https://data.example.com`, the RP ID should be `data.example.com`.
+
 ## How to
 
 - If you want to change the email for email 2FA, you can do it by creating a new template file at `auth/emails/verification_code.html`.
+
+### Passkeys
+
+When passkeys are enabled (`ckanext.auth.passkey_enabled = true`):
+
+- A **Sign in with a passkey** button appears on the login page.
+- Logged-in users can manage their passkeys (register new ones, delete existing ones) via the **Passkeys** tab on their user profile page (`/passkey/list/<username>`).
+- Passkeys use the WebAuthn standard and support any authenticator the browser supports — biometrics (fingerprint, Face ID), device PINs, or hardware security keys.
 
 ## Tests
 

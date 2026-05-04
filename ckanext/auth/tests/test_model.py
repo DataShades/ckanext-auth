@@ -7,7 +7,7 @@ import pytest
 
 import ckan.plugins.toolkit as tk
 
-from ckanext.auth.model import UserSecret
+from ckanext.auth.model import AuthPasskey, UserSecret
 
 CODE_LENGTH = 6
 
@@ -82,3 +82,64 @@ class TestUserSecretModel:
         assert user["name"] in secret.provisioning_uri
         assert cast(str, secret.secret) in secret.provisioning_uri
         assert parse.quote_plus(tk.config["ckan.site_url"]) in secret.provisioning_uri
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestAuthPasskeyModel:
+    def test_create(self, user):
+        passkey = AuthPasskey.create(
+            user_id=user["id"],
+            credential_id=b"cred_id",
+            public_key=b"pub_key",
+            sign_count=0,
+            name="My Passkey",
+        )
+
+        assert passkey.id
+        assert passkey.user_id == user["id"]
+        assert passkey.credential_id == b"cred_id"
+        assert passkey.public_key == b"pub_key"
+        assert passkey.sign_count == 0
+        assert passkey.name == "My Passkey"
+        assert passkey.created is not None
+
+    def test_get_by_credential_id(self, user):
+        created = AuthPasskey.create(
+            user_id=user["id"],
+            credential_id=b"cred_id",
+            public_key=b"pub_key",
+            sign_count=0,
+            name="Key",
+        )
+
+        found = AuthPasskey.get_by_credential_id(b"cred_id")
+
+        assert found is not None
+        assert found.id == created.id
+
+    def test_get_by_credential_id_missing(self):
+        assert AuthPasskey.get_by_credential_id(b"nonexistent") is None
+
+    def test_get_for_user(self, user):
+        AuthPasskey.create(user_id=user["id"], credential_id=b"cid_a", public_key=b"pk", sign_count=0, name="A")
+        AuthPasskey.create(user_id=user["id"], credential_id=b"cid_b", public_key=b"pk", sign_count=0, name="B")
+
+        passkeys = AuthPasskey.get_for_user(user["id"])
+
+        assert len(passkeys) == 2  # noqa PLR2004
+
+    def test_get_for_user_empty(self, user):
+        assert AuthPasskey.get_for_user(user["id"]) == []
+
+    def test_delete(self, user):
+        passkey = AuthPasskey.create(
+            user_id=user["id"],
+            credential_id=b"cred_del",
+            public_key=b"pk",
+            sign_count=0,
+            name="Delete Me",
+        )
+
+        passkey.delete()
+
+        assert AuthPasskey.get_by_credential_id(b"cred_del") is None

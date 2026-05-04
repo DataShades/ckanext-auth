@@ -28,6 +28,7 @@ class TestSendVerificationCodeToUser:
         mocker.return_value = True
         assert utils.send_verification_email_to_user(user["email"])
 
+
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestGetEmailVerificationCode:
     def test_get_email_verification_code(self, user):
