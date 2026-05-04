@@ -41,3 +41,19 @@ groups:
         editable: true
         type: bool
         description: Enable Dev mode that shows the secret code straight on the auth page.
+
+      - key: ckanext.auth.passkey_enabled
+        default: false
+        editable: true
+        type: bool
+        description: Enable passkey (WebAuthn) authentication.
+
+      - key: ckanext.auth.passkey_rp_name
+        default: ""
+        editable: true
+        description: Relying party display name shown to users during passkey registration. Defaults to ckan.site_title.
+
+      - key: ckanext.auth.passkey_rp_id
+        default: ""
+        editable: true
+        description: Relying party ID (domain) for passkey authentication. Defaults to the hostname of ckan.site_url.

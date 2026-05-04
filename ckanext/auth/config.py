@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 import ckan.plugins.toolkit as tk
 
 CONF_2FA_ENABLED = "ckanext.auth.2fa_enabled"
@@ -9,6 +11,10 @@ CONF_2FA_EMAIL_INTERVAL = "ckanext.auth.2fa_email_interval"
 CONF_2FA_LOGIN_TIMEOUT = "ckanext.auth.2fa_login_timeout"
 CONF_2FA_MAX_ATTEMPTS = "ckanext.auth.2fa_login_max_attempts"
 CONF_2FA_DEV_MODE = "ckanext.auth.2fa_dev_mode"
+
+CONF_PASSKEY_ENABLED = "ckanext.auth.passkey_enabled"
+CONF_PASSKEY_RP_NAME = "ckanext.auth.passkey_rp_name"
+CONF_PASSKEY_RP_ID = "ckanext.auth.passkey_rp_id"
 
 METHOD_EMAIL = "email"
 METHOD_AUTHENTICATOR = "authenticator"
@@ -49,3 +55,15 @@ def get_2fa_max_attempts() -> int:
 
 def is_2fa_dev_mode() -> bool:
     return tk.asbool(tk.config[CONF_2FA_DEV_MODE])
+
+
+def is_passkey_enabled() -> bool:
+    return tk.asbool(tk.config[CONF_PASSKEY_ENABLED])
+
+
+def get_passkey_rp_name() -> str:
+    return tk.config[CONF_PASSKEY_RP_NAME] or tk.config["ckan.site_title"]
+
+
+def get_passkey_rp_id() -> str:
+    return tk.config[CONF_PASSKEY_RP_ID] or urlparse(tk.config["ckan.site_url"]).hostname or "localhost"
