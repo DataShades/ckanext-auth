@@ -10,7 +10,7 @@ except ImportError:
     from typing_extensions import Self, cast
 
 import pyotp
-from sqlalchemy import Column, DateTime, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, LargeBinary, Text
 from sqlalchemy.orm import Mapped
 
 import ckan.plugins.toolkit as tk
@@ -144,3 +144,40 @@ class UserSecret(tk.BaseModel):
             user.name,
             issuer_name=tk.config["ckan.site_url"],
         )
+
+
+class AuthPasskey(tk.BaseModel):
+    __tablename__ = "auth_passkey"
+
+    id: Mapped[str] = Column(Text, primary_key=True, default=make_uuid)  # type: ignore
+    user_id: Mapped[str] = Column(ForeignKey(model.User.id, ondelete="CASCADE"), nullable=False)  # type: ignore
+    credential_id: Mapped[bytes] = Column(LargeBinary, nullable=False, unique=True)  # type: ignore
+    public_key: Mapped[bytes] = Column(LargeBinary, nullable=False)  # type: ignore
+    sign_count: Mapped[int] = Column(Integer, nullable=False, default=0)  # type: ignore
+    name: Mapped[str] = Column(Text, nullable=False, default="")  # type: ignore
+    created: Mapped[dt] = Column(DateTime, nullable=False, default=lambda: dt.now(tz.utc))  # type: ignore
+
+    @classmethod
+    def get_by_credential_id(cls, credential_id: bytes) -> Self | None:
+        return model.Session.query(cls).filter(cls.credential_id == credential_id).first()
+
+    @classmethod
+    def get_for_user(cls, user_id: str) -> list[Self]:
+        return model.Session.query(cls).filter(cls.user_id == user_id).all()
+
+    @classmethod
+    def create(cls, user_id: str, credential_id: bytes, public_key: bytes, sign_count: int, name: str) -> Self:
+        passkey = cls(
+            user_id=user_id,
+            credential_id=credential_id,
+            public_key=public_key,
+            sign_count=sign_count,
+            name=name,
+        )
+        model.Session.add(passkey)
+        model.Session.commit()
+        return passkey
+
+    def delete(self) -> None:
+        model.Session.delete(self)
+        model.Session.commit()
