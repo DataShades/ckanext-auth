@@ -25,7 +25,8 @@ classifiers = [
 keywords = ["CKAN"]
 urls = {Homepage = "https://github.com/DataShades/ckanext-auth"}
 dependencies = [
-    "pyotp>=2.6.0,<3.0.0"
+    "pyotp>=2.6.0,<3.0.0",
+    "webauthn>=2.0.0,<3.0.0",
 ]
 optional-dependencies = {}
 
