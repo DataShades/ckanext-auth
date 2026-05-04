@@ -43,3 +43,25 @@ fields:
     help_text: Number of failed login attempts before the login timeout is triggered
     validators: default(10) int_validator
     input_type: number
+
+  - field_name: ckanext.auth.passkey_enabled
+    label: Enable passkey (WebAuthn) authentication
+    help_text: Enable passkey (WebAuthn) authentication
+    validators: default(false), one_of([true, false])
+    preset: select
+    required: true
+    choices:
+      - value: true
+        label: Enable
+      - value: false
+        label: Disable
+
+  - field_name: ckanext.auth.passkey_rp_name
+    label: Relying party display name
+    help_text: Relying party display name shown to users during passkey registration
+    validators: default(CKAN) unicode_safe
+
+  - field_name: ckanext.auth.passkey_rp_id
+    label: Relying party ID
+    help_text: Domain for passkey authentication. Defaults to the hostname of ckan.site_url.
+    validators: not_empty unicode_safe

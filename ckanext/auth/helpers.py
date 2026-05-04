@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Any
+
+from ckan import model
+
 from ckanext.auth import config as auth_config
 
 
@@ -17,3 +21,8 @@ def get_2fa_method() -> str:
 
 def is_2fa_dev_mode_enabled() -> bool:
     return auth_config.is_2fa_dev_mode()
+
+
+def is_passkey_enabled() -> bool:
+    return auth_config.is_passkey_enabled()
+

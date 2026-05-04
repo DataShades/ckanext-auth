@@ -62,7 +62,7 @@ def is_passkey_enabled() -> bool:
 
 
 def get_passkey_rp_name() -> str:
-    return tk.config[CONF_PASSKEY_RP_NAME] or tk.config["ckan.site_title"]
+    return tk.config[CONF_PASSKEY_RP_NAME]
 
 
 def get_passkey_rp_id() -> str:

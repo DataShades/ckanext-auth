@@ -49,7 +49,7 @@ groups:
         description: Enable passkey (WebAuthn) authentication.
 
       - key: ckanext.auth.passkey_rp_name
-        default: ""
+        default: CKAN
         editable: true
         description: Relying party display name shown to users during passkey registration. Defaults to ckan.site_title.
 

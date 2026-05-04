@@ -7,7 +7,8 @@ from datetime import timezone as tz
 try:
     from typing import Self, cast
 except ImportError:
-    from typing_extensions import Self, cast
+    from typing_extensions import Self
+    from typing import cast
 
 import pyotp
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, LargeBinary, Text

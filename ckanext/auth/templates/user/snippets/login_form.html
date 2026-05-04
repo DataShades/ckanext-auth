@@ -1,5 +1,5 @@
 {#
-    Altered login form that includes the 2FA authentication.
+    Altered login form that includes the 2FA authentication and passkey support.
 #}
 
 {% import 'macros/form.html' as form %}
@@ -7,6 +7,7 @@
 {% set username_error = true if error_summary %}
 {% set password_error = true if error_summary %}
 {% set is_2fa_enabled = h.is_2fa_enabled() %}
+{% set is_passkey_enabled = h.is_passkey_enabled() %}
 
 <form id="mfa-login-form" action="{{ action }}" method="post"
     data-module="auth-login-form"
@@ -54,3 +55,16 @@
         {% endif %}
     {% endif %}
 </form>
+
+{% if is_passkey_enabled %}
+  <div class="passkey-login-section d-flex flex-column align-items-center">
+      <div class="passkey-separator w-100 text-center border-top pt-3 my-3">
+          <span>{{ _('or') }}</span>
+      </div>
+
+      <button type="button" class="btn btn-default btn-block"
+          data-module="auth-passkey-login">
+          {{ _('Sign in with a passkey') }}
+      </button>
+  </div>
+{% endif %}
