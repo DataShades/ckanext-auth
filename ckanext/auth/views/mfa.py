@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 import contextlib
-from collections.abc import Callable
-from functools import wraps
 from typing import Any, cast
 
 from flask import Blueprint, Response, jsonify, request
@@ -11,7 +9,6 @@ from flask.views import MethodView
 
 from ckan import model, types
 from ckan.logic import parse_params
-from ckan.plugins import plugin_loaded
 from ckan.plugins import toolkit as tk
 
 import ckanext.auth.helpers as ah
@@ -22,18 +19,8 @@ log = logging.getLogger(__name__)
 auth = Blueprint("auth", __name__, url_prefix="/mfa")
 
 
-def require_login(func: Callable[..., Response | str]) -> Callable[..., Response | str]:
-    @wraps(func)
-    def decorated_view(*args: tuple, **kwargs: dict[str, str]) -> Response | str:
-        if tk.current_user.is_anonymous:
-            return tk.abort(401, tk._("You have to be logged in to access this page."))
-        return func(*args, **kwargs)
-
-    return decorated_view
-
-
 class Configure2FA(MethodView):
-    @require_login
+    @utils.require_login
     def get(self, user_id: str) -> str:
         try:
             user_dict = tk.get_action("user_show")(self.get_context(), {"id:": user_id})
@@ -62,7 +49,7 @@ class Configure2FA(MethodView):
             "auth_user_obj": tk.current_user,
         }
 
-    @require_login
+    @utils.require_login
     def post(self, user_id: str) -> Response:
         extra_vars = self._setup_totp_extra_vars(user_id)
 
@@ -109,7 +96,7 @@ class Configure2FA(MethodView):
 
 
 @auth.route("/configure_mfa/<user_id>/new", methods=["GET", "POST"])
-@require_login
+@utils.require_login
 def regenerate_secret(user_id: str):
     utils.regenerate_user_secret(user_id)
     tk.h.flash_success(tk._("Your 2FA secret has been regenerated."))
@@ -177,28 +164,7 @@ def get_2fa_user_code() -> Response:
     return jsonify({"success": True, "result": {"code": code}})
 
 
-if plugin_loaded("admin_panel"):
-    from ckanext.ap_main.utils import ap_before_request
-    from ckanext.ap_main.views.generics import ApConfigurationPageView
-
-    auth_admin = Blueprint("auth_admin", __name__)
-    auth_admin.before_request(ap_before_request)
-
-    auth_admin.add_url_rule(
-        "/admin-panel/auth/config",
-        view_func=ApConfigurationPageView.as_view(
-            "config",
-            "ckanext_auth_config",
-            page_title=tk._("Auth config"),
-        ),
-    )
-
-
 auth.add_url_rule(
     "/configure_2fa/<user_id>",
     view_func=Configure2FA.as_view("configure_2fa"),
 )
-
-
-def get_blueprints():
-    return [auth]

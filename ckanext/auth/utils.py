@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from collections.abc import Callable
+from functools import wraps
+
+from flask import Response
 
 try:
     from typing import NotRequired, TypedDict, cast
 except ImportError:
-    from typing_extensions import NotRequired, TypedDict, cast
+    from typing_extensions import NotRequired, TypedDict
+    from typing import cast
 
 import ckan.lib.mailer as ckan_mailer
 import ckan.plugins as p
@@ -21,6 +26,16 @@ from ckanext.auth.exceptions import ReplayAttackError
 from ckanext.auth.model import UserSecret
 
 log = logging.getLogger(__name__)
+
+
+def require_login(func: Callable[..., Response | str]) -> Callable[..., Response | str]:
+    @wraps(func)
+    def decorated_view(*args: tuple, **kwargs: dict[str, str]) -> Response | str:
+        if tk.current_user.is_anonymous:
+            return tk.abort(401, tk._("You have to be logged in to access this page."))
+        return func(*args, **kwargs)
+
+    return decorated_view
 
 
 class IdentityDict(TypedDict):
@@ -204,10 +219,7 @@ def authenticate(identity: IdentityDict) -> model.User | model.AnonymousUser | N
     if LoginManager.is_login_blocked(identity["login"]):
         return None
 
-    if (
-        LoginManager.get_user_login_attempts(identity["login"])
-        > auth_config.get_2fa_max_attempts()
-    ):
+    if LoginManager.get_user_login_attempts(identity["login"]) > auth_config.get_2fa_max_attempts():
         LoginManager.block_user_login(identity["login"])
 
     if not ckan_auth_result:
