@@ -59,6 +59,8 @@ class UserSecret(tk.BaseModel):
         else:
             user_secret.secret = secret_value
 
+        # last_access must be set to None (e.g. when rotating a user secret)
+        user_secret.last_access = None
         model.Session.add(user_secret)
         model.Session.commit()
 
