@@ -37,6 +37,16 @@ class TestUserSecretModel:
         secret = UserSecret.create_for_user(user["name"])
         assert secret.secret != old_secret
 
+    def test_rotation_resets_last_access(self, user):
+        """Rotating the secret must clear the previous secret's last_access,
+        otherwise the new secret would inherit a stale timestamp."""
+        secret = UserSecret.create_for_user(user["name"])
+        secret.check_code(secret.get_code())
+        assert secret.last_access
+
+        secret = UserSecret.create_for_user(user["name"])
+        assert secret.last_access is None
+
     def test_create_for_missing_user(self):
         with pytest.raises(tk.ObjectNotFound):
             UserSecret.create_for_user("missing")

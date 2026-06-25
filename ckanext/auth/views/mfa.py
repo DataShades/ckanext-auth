@@ -77,7 +77,7 @@ class Configure2FA(MethodView):
         user_secret = UserSecret.get_for_user(user_id)
 
         if not user_secret:
-            return {}
+            user_secret = UserSecret.create_for_user(user_id)
 
         test_code = cast(str, data_dict.get("code"))
 
