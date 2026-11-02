@@ -64,22 +64,13 @@ def auth_2fa_check_credentials(
 ) -> LoginResponse:
     tk.check_access("auth_2fa_user_login", context, data_dict)
 
-    user = utils.get_user_by_username_or_email(data_dict["login"])
-
     try:
         captcha.check_recaptcha(tk.request)
     except captcha.CaptchaError:
         log.info("2FA: Login failed for %s", data_dict["login"])
         return LoginResponse(success=False, error=tk._("Invalid reCAPTCHA"))
 
-    if not user or not user.is_active or not user.validate_password(data_dict["password"]):
-        log.info("2FA: Login failed for %s", data_dict["login"])
-
-        utils.LoginManager.log_user_login_attempt(data_dict["login"])
-
-        if utils.LoginManager.get_user_login_attempts(data_dict["login"]) > auth_config.get_2fa_max_attempts():
-            utils.LoginManager.block_user_login(data_dict["login"])
-
+    if not utils.check_user_credentials(data_dict["login"], data_dict["password"]):
         return LoginResponse(success=False, error=tk._("Invalid login or password"))
 
     if utils.LoginManager.is_login_blocked(data_dict["login"]):

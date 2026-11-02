@@ -270,5 +270,30 @@ def authenticate_totp(user_name: str) -> str | None:
         return user_name if result else None
 
 
+def check_user_credentials(login: str, password: str) -> model.User | None:
+    """Validate a login and password, counting failures towards the login block.
+
+    Args:
+        login (str): The user's name or email.
+        password (str): The password to validate.
+
+    Returns:
+        model.User | None: The user if the credentials are valid
+    """
+    user = get_user_by_username_or_email(login)
+
+    if user and user.is_active and user.validate_password(password):
+        return user
+
+    log.info("2FA: Login failed for %s", login)
+
+    LoginManager.log_user_login_attempt(login)
+
+    if LoginManager.get_user_login_attempts(login) > auth_config.get_2fa_max_attempts():
+        LoginManager.block_user_login(login)
+
+    return None
+
+
 def get_user_by_username_or_email(user_reference: str) -> model.User | None:
     return model.User.get(user_reference) or model.User.by_email(user_reference)

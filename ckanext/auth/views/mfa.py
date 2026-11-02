@@ -19,11 +19,24 @@ log = logging.getLogger(__name__)
 auth = Blueprint("auth", __name__, url_prefix="/mfa")
 
 
+def _check_manage_2fa_access(user_id: str) -> None:
+    """Only the account owner or a sysadmin may see or change a 2FA secret."""
+    user = utils.get_user_by_username_or_email(user_id)
+
+    if not user:
+        tk.abort(404, tk._("User not found"))
+
+    if user.id != tk.current_user.id and not tk.current_user.sysadmin:
+        tk.abort(403, tk._("Not authorized to see this page"))
+
+
 class Configure2FA(MethodView):
     @utils.require_login
     def get(self, user_id: str) -> str:
+        _check_manage_2fa_access(user_id)
+
         try:
-            user_dict = tk.get_action("user_show")(self.get_context(), {"id:": user_id})
+            user_dict = tk.get_action("user_show")(self.get_context(), {"id": user_id})
         except tk.ObjectNotFound:
             tk.abort(404, tk._("User not found"))
         except tk.NotAuthorized:
@@ -51,6 +64,8 @@ class Configure2FA(MethodView):
 
     @utils.require_login
     def post(self, user_id: str) -> Response:
+        _check_manage_2fa_access(user_id)
+
         extra_vars = self._setup_totp_extra_vars(user_id)
 
         if extra_vars.get("code_valid"):
@@ -95,9 +110,11 @@ class Configure2FA(MethodView):
         return extra_vars
 
 
-@auth.route("/configure_mfa/<user_id>/new", methods=["GET", "POST"])
+@auth.route("/configure_mfa/<user_id>/new", methods=["POST"])
 @utils.require_login
 def regenerate_secret(user_id: str):
+    _check_manage_2fa_access(user_id)
+
     utils.regenerate_user_secret(user_id)
     tk.h.flash_success(tk._("Your 2FA secret has been regenerated."))
     return tk.redirect_to("auth.configure_2fa", user_id=user_id)
@@ -105,6 +122,10 @@ def regenerate_secret(user_id: str):
 
 @auth.route("/send_verification_code", methods=["POST"])
 def send_verification_code() -> Response:
+    # rotating a TOTP secret clears last_access, which re-enables enrollment
+    if ah.is_totp_2fa_enabled():
+        tk.abort(404, tk._("Not found"))
+
     login: str = tk.get_or_bust(dict(tk.request.form), "login")
 
     with contextlib.suppress(tk.ObjectNotFound):
@@ -123,23 +144,31 @@ def send_verification_code() -> Response:
 
 @auth.route("/init_qr_code", methods=["POST"])
 def init_qr_code() -> Response:
-    user_name: str = tk.get_or_bust(dict(tk.request.form), "login")
+    """Provide the TOTP secret for enrollment during login.
 
-    secret = UserSecret.get_for_user(user_name)
+    The secret is only ever returned to a caller holding the user's password,
+    and only until the first successful verification.
+    """
+    if not ah.is_totp_2fa_enabled():
+        tk.abort(404, tk._("Not found"))
+
+    login: str = tk.get_or_bust(dict(tk.request.form), "login")
+    user = utils.check_user_credentials(login, tk.request.form.get("password", ""))
+
+    if not user or utils.LoginManager.is_login_blocked(login):
+        tk.abort(403, tk._("Invalid login or password"))
+
+    secret = UserSecret.get_for_user(user.name)
     if not secret:
-        secret = UserSecret.create_for_user(user_name)
+        secret = UserSecret.create_for_user(user.name)
 
-    return jsonify(
-        {
-            "success": True,
-            "error": None,
-            "result": {
-                "accessed": bool(secret.last_access),
-                "provisioning_uri": secret.provisioning_uri,
-                "secret": secret.secret,
-            },
-        },
-    )
+    result: dict[str, Any] = {"accessed": bool(secret.last_access)}
+
+    if not secret.last_access:
+        result["provisioning_uri"] = secret.provisioning_uri
+        result["secret"] = secret.secret
+
+    return jsonify({"success": True, "error": None, "result": result})
 
 
 @auth.route("/get-user-code", methods=["POST"])
