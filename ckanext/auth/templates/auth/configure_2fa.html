@@ -15,16 +15,16 @@
         <h2 class="module-heading"><i class="fa fa-info-circle"></i> {{ _('Manage 2FA') }}</h2>
         <div class="module-content">
             <p>
-                {{ _("Scan the image with the two factor authentication app on your phone.") }}
+                {{ _("Scan the image with the two-factor authentication app on your phone.") }}
             </p>
 
             <p>
                 <b>{{ _("Test") }}</b>:
-                {{ _("Enter the two factor authentication code from your app to test correct configuration.") }}
+                {{ _("Enter the two-factor authentication code from your app to test correct configuration.") }}
             </p>
             <p>
                 <b>{{ _("Regenerate secret") }}</b>:
-                {{ _("You might need it if you lost an access to your 2FA device or want to setup another one.") }}
+                {{ _("If you lost access to your 2FA device or believe it has been compromised.") }}
             </p>
         </div>
     </section>
@@ -39,10 +39,10 @@
         {% snippet "auth/snippets/2fa_qr_code.html", totp_secret=totp_secret, provisioning_uri=provisioning_uri %}
 
         <div class="form-actions">
-            <a class="btn btn-default m-0 me-auto" href="{{ h.url_for('user.edit', id=user_dict.name) }}">{{ _("Back") }}</a>
+            <a class="btn btn-secondary m-0 me-auto" href="{{ h.url_for('user.edit', id=user_dict.name) }}">{{ _("Back") }}</a>
 
             <a class="btn btn-danger" href="{{ h.url_for('auth.regenerate_secret', user_id=user_id) }}" data-module="confirm-action"
-                data-module-i18n="{{ h.dump_json({'content': _('Are you sure you want to generate a new 2FA secret?')}) }}">
+                data-module-content="{{ _('Are you sure you want to generate a new 2FA secret?') }}">
                 {{ _('Regenerate 2FA secret') }}
             </a>
 

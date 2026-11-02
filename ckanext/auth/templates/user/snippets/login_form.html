@@ -1,5 +1,14 @@
 {#
-    Altered login form that includes the 2FA authentication and passkey support.
+  Renders the login form.
+
+  action        - The url that the form should be submitted to.
+  error_summary - A tuple/list of form errors.
+
+  Example:
+
+    {% snippet "user/snippets/login_form.html", action=g.login_handler, error_summary=error_summary %}
+
+  Altered login form that includes the 2FA authentication and passkey support.
 #}
 
 {% import 'macros/form.html' as form %}
@@ -9,62 +18,102 @@
 {% set is_2fa_enabled = h.is_2fa_enabled() %}
 {% set is_passkey_enabled = h.is_passkey_enabled() %}
 
-<form id="mfa-login-form" action="{{ action }}" method="post"
-    data-module="auth-login-form"
-    data-module-enabled="{{ h.is_2fa_enabled() | tojson }}"
-    data-module-mfa-method="{{ h.get_2fa_method() }}">
+{% block login_form_main %}
+  {% block login_form_header %}
+    <form id="mfa-login-form" action="{{ action }}" method="post"
+      data-module="auth-login-form"
+      data-module-enabled="{{ h.is_2fa_enabled() | tojson }}"
+      data-module-mfa-method="{{ h.get_2fa_method() }}">
+  {% endblock %}
     {{ h.csrf_input() }}
-    {{ form.errors(errors=error_summary) }}
 
-    <div id="mfa-error-container" class="alert alert-error" style="display: none;">
+    {% block login_error_summary %}
+      {{ form.errors(errors=error_summary) }}
+
+      <div id="mfa-error-container" class="alert alert-error" style="display: none;">
         <p>{{ _('The form contains invalid entries:') }}</p>
         <ul>
-            <li class="mfa-error-message"></li>
+          <li class="mfa-error-message"></li>
         </ul>
-    </div>
+      </div>
+    {% endblock %}
 
-    <div id="login-form">
-        {{ form.input('login', label=_("Username or Email"), id='field-login', value="", error=username_error, classes=["control-medium"]) }}
+    {% block login_form %}
+      <div id="login-form">
+        {% block login_default_fields %}
+          {{ form.input('login', label=_("Username or Email"), id='field-login', value="", error=username_error, classes=["control-medium"]) }}
 
-        {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"]) }}
+          {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"]) }}
+        {% endblock %}
 
-        {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000") }}
+        {% block login_forgot %}
+          <a href="{{ h.url_for('user.request_reset') }}">{{ _('Forgotten your password?') }}</a>
+        {% endblock %}
+
+        {% block login_remember %}
+          {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000") }}
+        {% endblock %}
 
         {% if g.recaptcha_publickey %}
+          {% block recaptcha %}
             {% snippet "user/snippets/recaptcha.html", public_key=g.recaptcha_publickey %}
+          {% endblock %}
         {% endif %}
 
-        <div class="form-actions">
-            {% block login_button %}
+        {% block login_form_actions %}
+          <div class="form-actions">
+            {% block login_form_actions_inner %}
+              {% if h.check_access('user_create') %}
+                {% block create_account_button %}
+                  <a class="btn btn-link" href="{{ h.url_for('user.register') }}">{{ _('Create account') }}</a>
+                {% endblock %}
+              {% endif %}
+              {% block login_button %}
                 {% if is_2fa_enabled %}
-                    <button class="btn btn-primary" id="mfa-next">{{ _('Next') }}</button>
+                  <button class="btn btn-primary" id="mfa-next">{{ _('Next') }}</button>
                 {% else %}
-                    <button class="btn btn-primary" type="submit">{{ _('Login') }}</button>
+                  <button class="btn btn-primary" type="submit">{{ _('Login') }}</button>
                 {% endif %}
+              {% endblock %}
             {% endblock %}
-        </div>
-    </div>
+          </div>
+        {% endblock %}
+      </div>
+    {% endblock %}
 
     {% if is_2fa_enabled %}
+      {% block two_fa_block %}
         <input id="mfa-type" name="mfa_type" type="hidden" value="{{ h.get_2fa_method() }}" />
 
         {% if h.is_totp_2fa_enabled() %}
+          {% block two_fa_totp_block %}
             {% snippet "auth/snippets/2fa_authenticator.html" %}
+          {% endblock %}
         {% else %}
+          {% block two_fa_email_block %}
             {% snippet "auth/snippets/2fa_email.html" %}
+          {% endblock %}
         {% endif %}
+      {% endblock %}
     {% endif %}
-</form>
+  </form>
+{% endblock %}
 
 {% if is_passkey_enabled %}
-  <div class="passkey-login-section d-flex flex-column align-items-center">
-      <div class="passkey-separator w-100 text-center border-top pt-3 my-3">
+  {% block passkey_block %}
+    <div class="passkey-login-section d-flex flex-column align-items-center">
+      {% block passkey_separator %}
+        <div class="passkey-separator w-100 text-center border-top pt-3 my-3">
           <span>{{ _('or') }}</span>
-      </div>
+        </div>
+      {% endblock %}
 
-      <button type="button" class="btn btn-default btn-block"
+      {% block passkey_button %}
+        <button type="button" class="btn btn-secondary btn-block"
           data-module="auth-passkey-login">
           {{ _('Sign in with a passkey') }}
-      </button>
-  </div>
+        </button>
+      {% endblock %}
+    </div>
+  {% endblock %}
 {% endif %}

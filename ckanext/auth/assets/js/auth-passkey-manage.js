@@ -1,4 +1,4 @@
-ckan.module("auth-passkey-manage", function ($, _) {
+ckan.module("auth-passkey-manage", function ($) {
     'use strict';
 
     return {
@@ -26,6 +26,7 @@ ckan.module("auth-passkey-manage", function ($, _) {
                 const resp = await $.ajax({
                     url: ckan.url("/passkey/" + passkeyId),
                     method: "DELETE",
+                    headers: this._csrfHeaders(),
                     dataType: "json",
                 });
 
@@ -41,9 +42,21 @@ ckan.module("auth-passkey-manage", function ($, _) {
                 }
 
             } catch (err) {
-                this._showError(err.message || _("Failed to remove passkey."));
+                this._showError(this._requestError(err, this._("Failed to remove passkey.")));
                 btn.prop("disabled", false);
             }
+        },
+
+        _csrfHeaders: function () {
+            const field = $("meta[name=csrf_field_name]").attr("content");
+            return { "X-CSRFToken": $(`meta[name=${field}]`).attr("content") };
+        },
+
+        _requestError: function (err, fallback) {
+            if (err.message) {
+                return err.message;
+            }
+            return err.status ? `${fallback} (HTTP ${err.status})` : fallback;
         },
 
         _showError: function (message) {

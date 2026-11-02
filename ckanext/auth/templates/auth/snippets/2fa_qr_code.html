@@ -1,5 +1,5 @@
 <fieldset id="mfa-qr-code" {% if not totp_secret %}style="display: none;"{% endif %}>
-    <div class="auth-qr-code-container align-items-center d-flex gap-3">
+    <div class="auth-qr-code-container align-items-center d-flex gap-3 flex-wrap">
         <canvas
             id="mfa-qr-code-container"
             class="radius-lg padding-sm margin-b-sm border-solid"

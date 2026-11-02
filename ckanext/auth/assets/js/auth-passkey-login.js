@@ -1,4 +1,4 @@
-ckan.module("auth-passkey-login", function ($, _) {
+ckan.module("auth-passkey-login", function ($) {
     'use strict';
 
     return {
@@ -25,6 +25,7 @@ ckan.module("auth-passkey-login", function ($, _) {
                 const beginResp = await $.ajax({
                     url: ckan.url("/passkey/login/begin"),
                     method: "POST",
+                    headers: this._csrfHeaders(),
                     dataType: "json",
                 });
 
@@ -49,6 +50,7 @@ ckan.module("auth-passkey-login", function ($, _) {
                 const completeResp = await $.ajax({
                     url: ckan.url("/passkey/login/complete"),
                     method: "POST",
+                    headers: this._csrfHeaders(),
                     contentType: "application/json",
                     data: JSON.stringify({
                         id: credential.id,
@@ -74,7 +76,7 @@ ckan.module("auth-passkey-login", function ($, _) {
 
             } catch (err) {
                 if (err.name !== "NotAllowedError") {
-                    this._showError(err.message || _("Passkey authentication failed."));
+                    this._showError(this._requestError(err, this._("Passkey authentication failed.")));
                 }
             } finally {
                 this.el.prop("disabled", false);
@@ -92,6 +94,18 @@ ckan.module("auth-passkey-login", function ($, _) {
             let binary = "";
             bytes.forEach(b => { binary += String.fromCharCode(b); });
             return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+        },
+
+        _csrfHeaders: function () {
+            const field = $("meta[name=csrf_field_name]").attr("content");
+            return { "X-CSRFToken": $(`meta[name=${field}]`).attr("content") };
+        },
+
+        _requestError: function (err, fallback) {
+            if (err.message) {
+                return err.message;
+            }
+            return err.status ? `${fallback} (HTTP ${err.status})` : fallback;
         },
 
         _showError: function (message) {

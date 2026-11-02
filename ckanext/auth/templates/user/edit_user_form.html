@@ -4,11 +4,24 @@
     {{ super() }}
 
     {% if h.is_totp_2fa_enabled() %}
+        {% block totp_2fa_manage_link %}
         <fieldset class="form-group">
             <legend>{{_('Two factor authentication')}}</legend>
             <a href="{{ h.url_for('auth.configure_2fa', user_id=data.name )}}" class="btn btn-primary">
                 {{ _('Manage 2FA') }}
             </a>
         </fieldset>
+        {% endblock %}
+    {% endif %}
+
+    {% if h.is_passkey_enabled() %}
+        {% block passkey_manage_link %}
+        <fieldset class="form-group">
+            <legend>{{_('Passkeys')}}</legend>
+            <a href="{{ h.url_for('auth_passkey.passkeys', id=data.name )}}" class="btn btn-primary">
+                <i class="fa fa-key"></i> {{ _('Manage Passkeys') }}
+            </a>
+        </fieldset>
+        {% endblock %}
     {% endif %}
 {% endblock %}

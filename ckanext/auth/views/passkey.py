@@ -92,7 +92,7 @@ def passkey_login_complete() -> Response:
         {
             "success": True,
             "error": None,
-            "result": {"next": tk.url_for("home.index")},
+            "result": {"next": tk.url_for(tk.config["ckan.auth.route_after_login"])},
         }
     )
 

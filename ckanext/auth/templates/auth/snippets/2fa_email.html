@@ -15,15 +15,14 @@
     </div>
 
     <p>{{ _("Didn't get it?") }}
-        <button id="resend-mfa" class="btn btn-default mx-2" type="button">
+        <button id="resend-mfa" class="btn btn-secondary mx-2" type="button">
             {{ _("Resend code") }}
             <span class="counter"></span>
         </button>
     </p>
 
     <div class="form-actions">
-        {# todo: add help link #}
-        {# <a id="mfa-help-link" href="/" style="display: none; margin-right: 20px;">{{_('Need help?')}}</a> #}
+        {% block email_2fa_help %}{% endblock %}
         <button class="btn btn-primary" id="mfa-submit">{{ _('Submit') }}</button>
     </div>
 </div>

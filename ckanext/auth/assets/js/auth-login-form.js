@@ -42,7 +42,7 @@ ckan.module("auth-login-form", function () {
             this.nextBtn.prop("disabled", true);
 
             $.ajax({
-                url: "/api/action/auth_2fa_check_credentials",
+                url: ckan.url("/api/action/auth_2fa_check_credentials"),
                 method: "POST",
                 data: this.form.serialize(),
                 success: (resp) => {
@@ -111,7 +111,7 @@ ckan.module("auth-login-form", function () {
 
         _sendVerificationCode: function () {
             $.ajax({
-                url: "/mfa/send_verification_code",
+                url: ckan.url("/mfa/send_verification_code"),
                 method: "POST",
                 data: this.form.serialize(),
                 success: (_) => {
@@ -134,7 +134,7 @@ ckan.module("auth-login-form", function () {
             }
 
             $.ajax({
-                url: "/mfa/get-user-code",
+                url: ckan.url("/mfa/get-user-code"),
                 method: "POST",
                 data: this.form.serialize(),
                 success: (response) => {
@@ -152,7 +152,7 @@ ckan.module("auth-login-form", function () {
 
         _initQrCode: function () {
             $.ajax({
-                url: "/mfa/init_qr_code",
+                url: ckan.url("/mfa/init_qr_code"),
                 method: "POST",
                 data: this.form.serialize(),
                 success: (resp) => {
@@ -195,7 +195,7 @@ ckan.module("auth-login-form", function () {
             this.submitBtn.prop("disabled", true);
 
             $.ajax({
-                url: this.sandbox.url("/api/action/auth_2fa_user_login"),
+                url: ckan.url("/api/action/auth_2fa_user_login"),
                 method: "POST",
                 data: this.form.serialize(),
                 success: (resp) => {
