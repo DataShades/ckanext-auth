@@ -10,6 +10,7 @@ from ckan import plugins as p
 from ckan import types
 from ckan.common import CKANConfig
 
+from ckanext.auth import middleware as auth_middleware
 from ckanext.auth import utils
 
 log = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ log = logging.getLogger(__name__)
 @tk.blanket.cli
 class AuthPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
+    p.implements(p.IMiddleware, inherit=True)
     p.implements(p.ISignal)
     p.implements(p.IAuthenticator, inherit=True)
 
@@ -31,6 +33,11 @@ class AuthPlugin(p.SingletonPlugin):
     def update_config(self, config_: CKANConfig) -> None:
         tk.add_template_directory(config_, "templates")
         tk.add_resource("assets", "auth")
+
+    # IMiddleware
+
+    def make_middleware(self, app: types.CKANApp, config_: CKANConfig) -> types.CKANApp:
+        return auth_middleware.register_otp_logging(app)
 
     # ISignal
 

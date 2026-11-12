@@ -83,6 +83,18 @@ When passkeys are enabled (`ckanext.auth.passkey_enabled = true`):
 - Logged-in users can manage their passkeys (register new ones, delete existing ones) via the **Passkeys** tab on their user profile page (`/passkey/list/<username>`).
 - Passkeys use the WebAuthn standard and support any authenticator the browser supports — biometrics (fingerprint, Face ID), device PINs, or hardware security keys.
 
+### Email OTP logging
+
+Email OTP send and verification results are logged at INFO by `ckanext.auth.middleware`, with usernames and timing fields. Enable this logger in your CKAN logging configuration to collect these events; these events do not include codes, passwords, or secrets.
+
+Summarize a log file with:
+
+```console
+ckan -c /path/to/ckan.ini auth otp-stats /path/to/ckan.log
+```
+
+The report lists failed attempts, the overall verification failure percentage, and approximate delays since successful sends.
+
 ## Tests
 
 To run the tests, do:
